@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.0 (2026-04-22)
+
+Full Changelog: [v0.1.0...v0.2.0](https://github.com/fastvm-org/fastvm-sdk-typescript/compare/v0.1.0...v0.2.0)
+
+### Features
+
+* **lib:** add launch polling, unified upload/download, custom errors ([#5](https://github.com/fastvm-org/fastvm-sdk-typescript/issues/5)) ([f600c12](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/f600c1268051478b4c29d538fb98e8cb93238996))
+
+
+### Chores
+
+* **ci:** add top-level permissions: contents: read ([#4](https://github.com/fastvm-org/fastvm-sdk-typescript/issues/4)) ([82e41bc](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/82e41bce3df7120f8c6c2c298314d8a884e96412))
+
 ## 0.1.0 (2026-04-22)
 
 Full Changelog: [v0.0.1...v0.1.0](https://github.com/fastvm-org/fastvm-sdk-typescript/compare/v0.0.1...v0.1.0)
