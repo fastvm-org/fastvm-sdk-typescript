@@ -16,27 +16,29 @@ import { VERSION } from './version';
 import * as Errors from './core/error';
 import * as Uploads from './core/uploads';
 import * as API from './resources/index';
+import * as TopLevelAPI from './resources/top-level';
+import { HealthResponse } from './resources/top-level';
 import { APIPromise } from './core/api-promise';
-import { Healthz } from './resources/healthz';
-import { Livez } from './resources/livez';
-import { Org, OrgQuotaValues, OrgRetrieveQuotasResponse } from './resources/org';
-import { Readyz } from './resources/readyz';
+import { OrgQuotaUsage, OrgQuotaValues, Quotas } from './resources/quotas';
 import {
+  Snapshot,
   SnapshotCreateParams,
+  SnapshotDeleteResponse,
   SnapshotListResponse,
-  SnapshotObject,
   SnapshotUpdateParams,
   Snapshots,
 } from './resources/snapshots';
 import {
-  DeleteResponse,
-  VmCreateParams,
-  VmExecuteCommandParams,
-  VmExecuteCommandResponse,
-  VmInstance,
-  VmIssueConsoleTokenResponse,
+  ConsoleToken,
+  ExecResult,
+  Vm,
+  VmDeleteResponse,
+  VmLaunchParams,
   VmListResponse,
-  VmRenameParams,
+  VmPatchFirewallParams,
+  VmRunParams,
+  VmSetFirewallParams,
+  VmUpdateParams,
   Vms,
 } from './resources/vms/vms';
 import { type Fetch } from './internal/builtin-types';
@@ -54,14 +56,9 @@ import { isEmptyObj } from './internal/utils/values';
 
 export interface ClientOptions {
   /**
-   * API key auth (`hlm_...`).
+   * Defaults to process.env['FASTVM_API_KEY'].
    */
-  apiKey?: string | null | undefined;
-
-  /**
-   * Defaults to process.env['FASTVM_BEARER_TOKEN'].
-   */
-  bearerToken?: string | null | undefined;
+  apiKey?: string | undefined;
 
   /**
    * Override the default base URL for the API, e.g., "https://api.example.com/v2/"
@@ -136,8 +133,7 @@ export interface ClientOptions {
  * API Client for interfacing with the Fastvm API.
  */
 export class Fastvm {
-  apiKey: string | null;
-  bearerToken: string | null;
+  apiKey: string;
 
   baseURL: string;
   maxRetries: number;
@@ -154,8 +150,7 @@ export class Fastvm {
   /**
    * API Client for interfacing with the Fastvm API.
    *
-   * @param {string | null | undefined} [opts.apiKey=process.env['FASTVM_API_KEY'] ?? null]
-   * @param {string | null | undefined} [opts.bearerToken=process.env['FASTVM_BEARER_TOKEN'] ?? null]
+   * @param {string | undefined} [opts.apiKey=process.env['FASTVM_API_KEY'] ?? undefined]
    * @param {string} [opts.baseURL=process.env['FASTVM_BASE_URL'] ?? https://api.fastvm.org] - Override the default base URL for the API.
    * @param {number} [opts.timeout=1 minute] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
    * @param {MergedRequestInit} [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
@@ -166,13 +161,17 @@ export class Fastvm {
    */
   constructor({
     baseURL = readEnv('FASTVM_BASE_URL'),
-    apiKey = readEnv('FASTVM_API_KEY') ?? null,
-    bearerToken = readEnv('FASTVM_BEARER_TOKEN') ?? null,
+    apiKey = readEnv('FASTVM_API_KEY'),
     ...opts
   }: ClientOptions = {}) {
+    if (apiKey === undefined) {
+      throw new Errors.FastvmError(
+        "The FASTVM_API_KEY environment variable is missing or empty; either provide it, or instantiate the Fastvm client with an apiKey option, like new Fastvm({ apiKey: 'My API Key' }).",
+      );
+    }
+
     const options: ClientOptions = {
       apiKey,
-      bearerToken,
       ...opts,
       baseURL: baseURL || `https://api.fastvm.org`,
     };
@@ -195,7 +194,6 @@ export class Fastvm {
     this._options = options;
 
     this.apiKey = apiKey;
-    this.bearerToken = bearerToken;
   }
 
   /**
@@ -212,7 +210,6 @@ export class Fastvm {
       fetch: this.fetch,
       fetchOptions: this.fetchOptions,
       apiKey: this.apiKey,
-      bearerToken: this.bearerToken,
       ...options,
     });
     return client;
@@ -225,52 +222,24 @@ export class Fastvm {
     return this.baseURL !== 'https://api.fastvm.org';
   }
 
+  /**
+   * Returns 200 when the scheduler is reachable. SDK clients call this on startup to
+   * warm HTTP/2 connections before the first real request.
+   */
+  health(options?: RequestOptions): APIPromise<TopLevelAPI.HealthResponse> {
+    return this.get('/healthz', options);
+  }
+
   protected defaultQuery(): Record<string, string | undefined> | undefined {
     return this._options.defaultQuery;
   }
 
   protected validateHeaders({ values, nulls }: NullableHeaders) {
-    if (this.apiKey && values.get('x-api-key')) {
-      return;
-    }
-    if (nulls.has('x-api-key')) {
-      return;
-    }
-
-    if (this.bearerToken && values.get('authorization')) {
-      return;
-    }
-    if (nulls.has('authorization')) {
-      return;
-    }
-
-    throw new Error(
-      'Could not resolve authentication method. Expected either apiKey or bearerToken to be set. Or for one of the "X-API-Key" or "Authorization" headers to be explicitly omitted',
-    );
+    return;
   }
 
-  protected async authHeaders(
-    opts: FinalRequestOptions,
-    schemes: { apiKeyAuth?: boolean; bearerAuth?: boolean },
-  ): Promise<NullableHeaders | undefined> {
-    return buildHeaders([
-      schemes.apiKeyAuth ? await this.apiKeyAuth(opts) : null,
-      schemes.bearerAuth ? await this.bearerAuth(opts) : null,
-    ]);
-  }
-
-  protected async apiKeyAuth(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
-    if (this.apiKey == null) {
-      return undefined;
-    }
+  protected async authHeaders(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
     return buildHeaders([{ 'X-API-Key': this.apiKey }]);
-  }
-
-  protected async bearerAuth(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
-    if (this.bearerToken == null) {
-      return undefined;
-    }
-    return buildHeaders([{ Authorization: `Bearer ${this.bearerToken}` }]);
   }
 
   /**
@@ -699,7 +668,7 @@ export class Fastvm {
         ...(options.timeout ? { 'X-Stainless-Timeout': String(Math.trunc(options.timeout / 1000)) } : {}),
         ...getPlatformHeaders(),
       },
-      await this.authHeaders(options, options.__security ?? { apiKeyAuth: true, bearerAuth: true }),
+      await this.authHeaders(options),
       this._options.defaultHeaders,
       bodyHeaders,
       options.headers,
@@ -780,53 +749,51 @@ export class Fastvm {
 
   static toFile = Uploads.toFile;
 
-  healthz: API.Healthz = new API.Healthz(this);
-  livez: API.Livez = new API.Livez(this);
-  readyz: API.Readyz = new API.Readyz(this);
   vms: API.Vms = new API.Vms(this);
+  /**
+   * Snapshot lifecycle
+   */
   snapshots: API.Snapshots = new API.Snapshots(this);
-  org: API.Org = new API.Org(this);
+  /**
+   * Org quotas and usage
+   */
+  quotas: API.Quotas = new API.Quotas(this);
 }
 
-Fastvm.Healthz = Healthz;
-Fastvm.Livez = Livez;
-Fastvm.Readyz = Readyz;
 Fastvm.Vms = Vms;
 Fastvm.Snapshots = Snapshots;
-Fastvm.Org = Org;
+Fastvm.Quotas = Quotas;
 
 export declare namespace Fastvm {
   export type RequestOptions = Opts.RequestOptions;
 
-  export { Healthz as Healthz };
-
-  export { Livez as Livez };
-
-  export { Readyz as Readyz };
+  export { type HealthResponse as HealthResponse };
 
   export {
     Vms as Vms,
-    type DeleteResponse as DeleteResponse,
-    type VmInstance as VmInstance,
+    type ConsoleToken as ConsoleToken,
+    type ExecResult as ExecResult,
+    type Vm as Vm,
     type VmListResponse as VmListResponse,
-    type VmExecuteCommandResponse as VmExecuteCommandResponse,
-    type VmIssueConsoleTokenResponse as VmIssueConsoleTokenResponse,
-    type VmCreateParams as VmCreateParams,
-    type VmExecuteCommandParams as VmExecuteCommandParams,
-    type VmRenameParams as VmRenameParams,
+    type VmDeleteResponse as VmDeleteResponse,
+    type VmUpdateParams as VmUpdateParams,
+    type VmLaunchParams as VmLaunchParams,
+    type VmPatchFirewallParams as VmPatchFirewallParams,
+    type VmRunParams as VmRunParams,
+    type VmSetFirewallParams as VmSetFirewallParams,
   };
 
   export {
     Snapshots as Snapshots,
-    type SnapshotObject as SnapshotObject,
+    type Snapshot as Snapshot,
     type SnapshotListResponse as SnapshotListResponse,
+    type SnapshotDeleteResponse as SnapshotDeleteResponse,
     type SnapshotCreateParams as SnapshotCreateParams,
     type SnapshotUpdateParams as SnapshotUpdateParams,
   };
 
-  export {
-    Org as Org,
-    type OrgQuotaValues as OrgQuotaValues,
-    type OrgRetrieveQuotasResponse as OrgRetrieveQuotasResponse,
-  };
+  export { Quotas as Quotas, type OrgQuotaUsage as OrgQuotaUsage, type OrgQuotaValues as OrgQuotaValues };
+
+  export type FirewallPolicy = API.FirewallPolicy;
+  export type FirewallRule = API.FirewallRule;
 }
