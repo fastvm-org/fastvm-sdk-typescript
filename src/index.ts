@@ -20,3 +20,7 @@ export {
   PermissionDeniedError,
   UnprocessableEntityError,
 } from './core/error';
+
+// Custom helpers (hand-written, not generated). See `helpers.md`.
+export { FastvmClient, FileTransferError, VMLaunchError, VMNotReadyError } from './lib';
+export type { LaunchOptions, WaitForReadyOptions, TransferOptions } from './lib';

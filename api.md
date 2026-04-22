@@ -73,3 +73,24 @@ Types:
 Methods:
 
 - <code title="get /v1/org/quotas">client.quotas.<a href="./src/resources/quotas.ts">retrieve</a>() -> OrgQuotaUsage</code>
+
+# Helpers
+
+Hand-written convenience methods on top of the generated `Fastvm` client.
+Source: [`src/lib/`](./src/lib/). Full docs: [`helpers.md`](./helpers.md).
+
+Import the helper-enhanced client via the top-level export:
+
+```ts
+import { FastvmClient, VMLaunchError, VMNotReadyError, FileTransferError } from 'fastvm';
+const client = new FastvmClient();
+```
+
+All helper errors subclass `FastvmError` — `catch (e) { if (e instanceof FastvmError) ... }` catches every SDK error.
+
+Methods:
+
+- <code>client.<a href="./src/lib/client.ts">launch</a>(params, opts?) -> Promise&lt;<a href="./src/resources/vms/vms.ts">Vm</a>&gt;</code>
+- <code>client.<a href="./src/lib/client.ts">waitForVmReady</a>(vmId, opts?) -> Promise&lt;<a href="./src/resources/vms/vms.ts">Vm</a>&gt;</code>
+- <code>client.<a href="./src/lib/client.ts">upload</a>(vmId, localPath, remotePath, opts?) -> Promise&lt;void&gt;</code>
+- <code>client.<a href="./src/lib/client.ts">download</a>(vmId, remotePath, localPath, opts?) -> Promise&lt;void&gt;</code>
