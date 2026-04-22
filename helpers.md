@@ -15,34 +15,36 @@ const client = new FastvmClient(); // same constructor/options as `Fastvm`
 ```
 
 `FastvmClient` extends `Fastvm` — every generated method/resource works
-identically. Only the four methods below are custom.
+identically. The list below is exhaustive: one signature override on the
+generated `vms.launch`, plus a handful of top-level helpers.
 
-## `client.launch(params, opts?)` — create a VM and wait for `status === 'running'`
+## `client.vms.launch(params, options?, launchOpts?)` — poll until `status === 'running'`
 
-`POST /v1/vms` returns `201` for immediately-running VMs and `202` for
-queued VMs. The raw `client.vms.launch(...)` returns the initial body
-verbatim; this helper polls `GET /v1/vms/{id}` until the VM is actually
-ready.
+`FastvmClient` swaps in a `Vms` subclass that overrides `launch()` to
+poll `GET /v1/vms/{id}` until the VM is ready. `POST /v1/vms` returns
+`201` for immediately-running VMs and `202` for queued VMs; the override
+handles both paths transparently.
 
 ```ts
-const vm = await client.launch({ machineType: 'c1m2', name: 'dev' });
+const vm = await client.vms.launch({ machineType: 'c1m2', name: 'dev' });
 // throws VMLaunchError on terminal status (error / stopped / deleting)
 // throws VMNotReadyError on polling timeout
 
-const vm = await client.launch({ snapshotId: 'snp_...' }); // restore-from-snapshot
+const vm = await client.vms.launch({ snapshotId: 'snp_...' }); // restore-from-snapshot
 
-const vm = await client.launch(params, { wait: false });
+const vm = await client.vms.launch(params, undefined, { wait: false });
 // wait:false → returns the initial (possibly-queued) VM immediately
 ```
 
-Options:
+The first two arguments match the generated `Vms.launch(body, options?)`
+signature byte-for-byte. Helper-only options live on the third argument:
 
 - `wait` (default `true`) — skip polling and return the raw 201/202 body.
 - `pollIntervalMs` (default `2000`) — poll cadence with ±10% jitter.
 - `timeoutMs` (default `300_000`) — total deadline before `VMNotReadyError`.
 
 `client.waitForVmReady(vmId, opts?)` is exposed separately for callers who
-kicked off a launch via the raw client.
+already have a VM id (e.g. from `client.vms.list()`).
 
 ## `client.upload(vmId, localPath, remotePath, opts?)`
 
