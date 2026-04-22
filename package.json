@@ -1,6 +1,6 @@
 {
   "name": "fastvm",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "The official TypeScript library for the Fastvm API",
   "author": "Fastvm <contact@example.com>",
   "types": "dist/index.d.ts",
