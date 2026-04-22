@@ -11,7 +11,7 @@ It is generated with [Stainless](https://www.stainless.com/).
 ## Installation
 
 ```sh
-npm install git+ssh://git@github.com:stainless-sdks/fastvm-typescript.git
+npm install git+ssh://git@github.com:fastvm-org/fastvm-sdk-typescript.git
 ```
 
 > [!NOTE]
@@ -25,9 +25,13 @@ The full API of this library can be found in [api.md](api.md).
 ```js
 import Fastvm from 'fastvm';
 
-const client = new Fastvm();
+const client = new Fastvm({
+  apiKey: process.env['FASTVM_API_KEY'], // This is the default and can be omitted
+});
 
-await client.healthz.check();
+const vm = await client.vms.launch();
+
+console.log(vm.id);
 ```
 
 ### Request & Response types
@@ -38,9 +42,11 @@ This library includes TypeScript definitions for all request params and response
 ```ts
 import Fastvm from 'fastvm';
 
-const client = new Fastvm();
+const client = new Fastvm({
+  apiKey: process.env['FASTVM_API_KEY'], // This is the default and can be omitted
+});
 
-await client.healthz.check();
+const vm: Fastvm.Vm = await client.vms.launch();
 ```
 
 Documentation for each method, request param, and response field are available in docstrings and will appear on hover in most modern editors.
@@ -53,7 +59,7 @@ a subclass of `APIError` will be thrown:
 
 <!-- prettier-ignore -->
 ```ts
-const response = await client.healthz.check().catch(async (err) => {
+const vm = await client.vms.launch().catch(async (err) => {
   if (err instanceof Fastvm.APIError) {
     console.log(err.status); // 400
     console.log(err.name); // BadRequestError
@@ -93,7 +99,7 @@ const client = new Fastvm({
 });
 
 // Or, configure per-request:
-await client.healthz.check({
+await client.vms.launch({
   maxRetries: 5,
 });
 ```
@@ -110,7 +116,7 @@ const client = new Fastvm({
 });
 
 // Override per-request:
-await client.healthz.check({
+await client.vms.launch({
   timeout: 5 * 1000,
 });
 ```
@@ -133,13 +139,13 @@ Unlike `.asResponse()` this method consumes the body, returning once it is parse
 ```ts
 const client = new Fastvm();
 
-const response = await client.healthz.check().asResponse();
+const response = await client.vms.launch().asResponse();
 console.log(response.headers.get('X-My-Header'));
 console.log(response.statusText); // access the underlying Response object
 
-const { data: result, response: raw } = await client.healthz.check().withResponse();
+const { data: vm, response: raw } = await client.vms.launch().withResponse();
 console.log(raw.headers.get('X-My-Header'));
-console.log(result);
+console.log(vm.id);
 ```
 
 ### Logging
@@ -219,7 +225,7 @@ parameter. This library doesn't validate at runtime that the request matches the
 send will be sent as-is.
 
 ```ts
-client.healthz.check({
+client.vms.launch({
   // ...
   // @ts-expect-error baz is not yet public
   baz: 'undocumented option',
@@ -329,7 +335,7 @@ This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) con
 
 We take backwards-compatibility seriously and work hard to ensure you can rely on a smooth upgrade experience.
 
-We are keen for your feedback; please open an [issue](https://www.github.com/stainless-sdks/fastvm-typescript/issues) with questions, bugs, or suggestions.
+We are keen for your feedback; please open an [issue](https://www.github.com/fastvm-org/fastvm-sdk-typescript/issues) with questions, bugs, or suggestions.
 
 ## Requirements
 

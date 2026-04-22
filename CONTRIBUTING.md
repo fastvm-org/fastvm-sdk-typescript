@@ -42,15 +42,15 @@ If you’d like to use the repository from source, you can either install from g
 To install via git:
 
 ```sh
-$ npm install git+ssh://git@github.com:stainless-sdks/fastvm-typescript.git
+$ npm install git+ssh://git@github.com:fastvm-org/fastvm-sdk-typescript.git
 ```
 
 Alternatively, to link a local copy of the repo:
 
 ```sh
 # Clone
-$ git clone https://www.github.com/stainless-sdks/fastvm-typescript
-$ cd fastvm-typescript
+$ git clone https://www.github.com/fastvm-org/fastvm-sdk-typescript
+$ cd fastvm-sdk-typescript
 
 # With yarn
 $ yarn link
@@ -64,6 +64,12 @@ $ pnpm link --global fastvm
 ```
 
 ## Running tests
+
+Most tests require you to [set up a mock server](https://github.com/dgellow/steady) against the OpenAPI spec to run the tests.
+
+```sh
+$ ./scripts/mock
+```
 
 ```sh
 $ pnpm run test

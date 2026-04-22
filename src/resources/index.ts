@@ -1,24 +1,26 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-export { Healthz } from './healthz';
-export { Livez } from './livez';
-export { Org, type OrgQuotaValues, type OrgRetrieveQuotasResponse } from './org';
-export { Readyz } from './readyz';
+export * from './shared';
+export { Quotas, type OrgQuotaUsage, type OrgQuotaValues } from './quotas';
 export {
   Snapshots,
-  type SnapshotObject,
+  type Snapshot,
   type SnapshotListResponse,
+  type SnapshotDeleteResponse,
   type SnapshotCreateParams,
   type SnapshotUpdateParams,
 } from './snapshots';
 export {
   Vms,
-  type DeleteResponse,
-  type VmInstance,
+  type ConsoleToken,
+  type ExecResult,
+  type Vm,
   type VmListResponse,
-  type VmExecuteCommandResponse,
-  type VmIssueConsoleTokenResponse,
-  type VmCreateParams,
-  type VmExecuteCommandParams,
-  type VmRenameParams,
+  type VmDeleteResponse,
+  type VmUpdateParams,
+  type VmLaunchParams,
+  type VmPatchFirewallParams,
+  type VmRunParams,
+  type VmSetFirewallParams,
 } from './vms/vms';
+export { type HealthResponse } from './top-level';

@@ -4,14 +4,12 @@ import Fastvm from 'fastvm';
 
 const client = new Fastvm({
   apiKey: 'My API Key',
-  bearerToken: 'My Bearer Token',
   baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
 });
 
 describe('resource snapshots', () => {
-  // Mock server tests are disabled
-  test.skip('create: only required params', async () => {
-    const responsePromise = client.snapshots.create({ vmId: '182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e' });
+  test('create: only required params', async () => {
+    const responsePromise = client.snapshots.create({ vmId: 'vmId' });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -21,17 +19,12 @@ describe('resource snapshots', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Mock server tests are disabled
-  test.skip('create: required and optional params', async () => {
-    const response = await client.snapshots.create({
-      vmId: '182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e',
-      name: 'name',
-    });
+  test('create: required and optional params', async () => {
+    const response = await client.snapshots.create({ vmId: 'vmId', name: 'name' });
   });
 
-  // Mock server tests are disabled
-  test.skip('update: only required params', async () => {
-    const responsePromise = client.snapshots.update('182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e', { name: 'name' });
+  test('update', async () => {
+    const responsePromise = client.snapshots.update('id', {});
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -41,13 +34,7 @@ describe('resource snapshots', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Mock server tests are disabled
-  test.skip('update: required and optional params', async () => {
-    const response = await client.snapshots.update('182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e', { name: 'name' });
-  });
-
-  // Mock server tests are disabled
-  test.skip('list', async () => {
+  test('list', async () => {
     const responsePromise = client.snapshots.list();
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -58,9 +45,8 @@ describe('resource snapshots', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Mock server tests are disabled
-  test.skip('delete', async () => {
-    const responsePromise = client.snapshots.delete('182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e');
+  test('delete', async () => {
+    const responsePromise = client.snapshots.delete('id');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
