@@ -1,21 +1,16 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-export { Console, type ConsoleWebsocketParams } from './console';
-export {
-  Firewall,
-  type FirewallPolicy,
-  type FirewallRule,
-  type FirewallPatchPolicyParams,
-  type FirewallReplacePolicyParams,
-} from './firewall';
+export { Files, type PresignResponse, type FileFetchParams, type FilePresignParams } from './files';
 export {
   Vms,
-  type DeleteResponse,
-  type VmInstance,
+  type ConsoleToken,
+  type ExecResult,
+  type Vm,
   type VmListResponse,
-  type VmExecuteCommandResponse,
-  type VmIssueConsoleTokenResponse,
-  type VmCreateParams,
-  type VmExecuteCommandParams,
-  type VmRenameParams,
+  type VmDeleteResponse,
+  type VmUpdateParams,
+  type VmLaunchParams,
+  type VmPatchFirewallParams,
+  type VmRunParams,
+  type VmSetFirewallParams,
 } from './vms';
