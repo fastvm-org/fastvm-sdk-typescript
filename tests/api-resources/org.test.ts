@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import Fastvm from 'fastvm';
+import Fastvm from '@fastvm/sdk';
 
 const client = new Fastvm({
   apiKey: 'My API Key',

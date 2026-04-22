@@ -5,8 +5,8 @@
   "compilerOptions": {
     "rootDir": "./dist/src",
     "paths": {
-      "fastvm/*": ["./dist/src/*"],
-      "fastvm": ["./dist/src/index.ts"]
+      "@fastvm/sdk/*": ["./dist/src/*"],
+      "@fastvm/sdk": ["./dist/src/index.ts"]
     },
     "noEmit": false,
     "declaration": true,
