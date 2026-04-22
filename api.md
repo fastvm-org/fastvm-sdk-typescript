@@ -90,7 +90,11 @@ All helper errors subclass `FastvmError` — `catch (e) { if (e instanceof Fastv
 
 Methods:
 
-- <code>client.<a href="./src/lib/client.ts">launch</a>(params, opts?) -> Promise&lt;<a href="./src/resources/vms/vms.ts">Vm</a>&gt;</code>
 - <code>client.<a href="./src/lib/client.ts">waitForVmReady</a>(vmId, opts?) -> Promise&lt;<a href="./src/resources/vms/vms.ts">Vm</a>&gt;</code>
 - <code>client.<a href="./src/lib/client.ts">upload</a>(vmId, localPath, remotePath, opts?) -> Promise&lt;void&gt;</code>
 - <code>client.<a href="./src/lib/client.ts">download</a>(vmId, remotePath, localPath, opts?) -> Promise&lt;void&gt;</code>
+
+Signature overrides on generated methods:
+
+- <code>client.vms.<a href="./src/lib/client.ts">launch</a>(params, options?, { wait?, pollIntervalMs?, timeoutMs? }) -> Promise&lt;<a href="./src/resources/vms/vms.ts">Vm</a>&gt;</code>
+  Polls `GET /v1/vms/{id}` until `status === "running"` by default. Pass `{ wait: false }` to mirror the raw `POST /v1/vms` behaviour.
