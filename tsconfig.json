@@ -8,8 +8,8 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "paths": {
-      "fastvm/*": ["./src/*"],
-      "fastvm": ["./src/index.ts"]
+      "@fastvm/sdk/*": ["./src/*"],
+      "@fastvm/sdk": ["./src/index.ts"]
     },
     "noEmit": true,
 
