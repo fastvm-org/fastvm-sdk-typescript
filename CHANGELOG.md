@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.3.0 (2026-04-23)
+
+Full Changelog: [v0.2.0...v0.3.0](https://github.com/fastvm-org/fastvm-sdk-typescript/compare/v0.2.0...v0.3.0)
+
+### Features
+
+* **lib:** move launch polling into client.vms.launch override ([#9](https://github.com/fastvm-org/fastvm-sdk-typescript/issues/9)) ([c6e17af](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/c6e17af63d12b5e2be401b14f447fbc59d144189))
+
+
+### Chores
+
+* **internal:** more robust bootstrap script ([0babe28](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/0babe2830a694eb75510840ab4fb0581d4167f88))
+* update SDK settings ([d09b1ca](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/d09b1ca2dada7859f0dd4e2fae6cbbe907c9a385))
+* update SDK settings ([8488904](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/8488904a7827524f2e7e71e583a68d5a534d604a))
+
+
+### Documentation
+
+* centralize helper documentation ([#11](https://github.com/fastvm-org/fastvm-sdk-typescript/issues/11)) ([9c11896](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/9c11896987e12b8fea4af80b09c1e8d054aebd47))
+
 ## 0.2.0 (2026-04-22)
 
 Full Changelog: [v0.1.0...v0.2.0](https://github.com/fastvm-org/fastvm-sdk-typescript/compare/v0.1.0...v0.2.0)
