@@ -1,7 +1,7 @@
 /**
  * Hand-written ergonomic helpers on top of the generated `Fastvm` client.
- * See `helpers.md` for prose docs and `CUSTOM_CODE.md` (in `fastvm-mono`)
- * for the why.
+ * See https://fastvm.org/docs/typescript for the full reference (signatures,
+ * examples, design notes). Structured specs live in `fastvm-mono/api/helpers.yaml`.
  */
 export { FastvmClient } from './client';
 export type { LaunchOptions, WaitForReadyOptions, TransferOptions } from './client';

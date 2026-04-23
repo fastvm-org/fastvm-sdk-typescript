@@ -21,6 +21,6 @@ export {
   UnprocessableEntityError,
 } from './core/error';
 
-// Custom helpers (hand-written, not generated). See `helpers.md`.
+// Custom helpers (hand-written, not generated). See https://fastvm.org/docs/typescript.
 export { FastvmClient, FileTransferError, VMLaunchError, VMNotReadyError } from './lib';
 export type { LaunchOptions, WaitForReadyOptions, TransferOptions } from './lib';
