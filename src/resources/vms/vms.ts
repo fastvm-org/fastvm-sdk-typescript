@@ -80,29 +80,25 @@ export class Vms extends APIResource {
   }
 
   /**
-   * Runs `command` via the VM's guest agent. Response shape is determined by the
-   * client's `Accept` header:
+   * Runs `command` inside the VM. Response shape is determined by the client's
+   * `Accept` header:
    *
    * - **`Accept: application/json`** (default, omitted, or `* /*`): buffered
-   *   `ExecVMResponse` — scheduler collects all output server-side and returns a
-   *   single JSON object once the command exits. Per-stream output is capped at 4
-   *   MiB; overflow bytes are dropped and signalled via `stdoutTruncated` /
-   *   `stderrTruncated`.
+   *   `ExecVMResponse` — the server collects all output and returns a single JSON
+   *   object once the command exits. Per-stream output is capped at 4 MiB; overflow
+   *   bytes are dropped and signalled via `stdoutTruncated` / `stderrTruncated`.
    * - **`Accept: application/x-ndjson`**: newline-delimited stream of `ExecEvent`s —
    *   zero or more `stdout`/`stderr` chunks followed by exactly one terminal `exit`
    *   event. Use this for incremental output (long builds, test runners, live logs).
    *   No server-side cap.
    *
-   * Both modes share the same request body and are powered by the same guest-side
-   * streaming protocol; the buffered mode is purely a server-side collector.
-   * `timeoutSec` bounds server-side execution; clients should set their own HTTP
-   * timeout in addition.
+   * Both modes share the same request body. `timeoutSec` bounds server-side
+   * execution; clients should set their own HTTP timeout in addition.
    *
-   * 502 responses are transient (worker unreachable, worker-side timeout, or worker
-   * 5xx, all collapsed into 502 at the scheduler). The SDK's `run()` helper does NOT
-   * auto-retry these by default: exec is **not idempotent**, so if a 502 hides a
-   * successful exec a retry may run the command twice. Callers opt in with
-   * `max_retries=N` per call.
+   * 502 responses are transient (the upstream VM host is unreachable or returned an
+   * error). The SDK's `run()` helper does NOT auto-retry these by default: exec is
+   * **not idempotent**, so if a 502 hides a successful exec a retry may run the
+   * command twice. Callers opt in with `max_retries=N` per call.
    */
   run(id: string, body: VmRunParams, options?: RequestOptions): APIPromise<ExecResult> {
     return this._client.post(path`/v1/vms/${id}/exec`, { body, maxRetries: 0, ...options });

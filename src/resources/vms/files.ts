@@ -11,13 +11,12 @@ import { path } from '../../internal/utils/path';
  */
 export class Files extends APIResource {
   /**
-   * Scheduler asks the VM worker to download `url` into the guest at `path`. `url`
-   * must be a presigned storage URL previously minted by
-   * `POST /v1/vms/{id}/files/presign` (URLs from other sources are rejected).
+   * Pulls `url` into the guest at `path`. `url` must be a presigned storage URL
+   * previously minted by `POST /v1/vms/{id}/files/presign` (URLs from other sources
+   * are rejected).
    *
-   * Response mirrors `/v1/vms/{id}/exec`: the worker runs the fetch via the guest
-   * agent and reports stdout/stderr/exit code of the underlying download+unpack
-   * operation.
+   * Response mirrors `/v1/vms/{id}/exec`: reports stdout/stderr/exit code of the
+   * underlying download+unpack operation.
    *
    * Not idempotent; not retried by default.
    */
@@ -28,7 +27,7 @@ export class Files extends APIResource {
   /**
    * Returns a pair of short-lived signed URLs targeting a per-VM staging location.
    * Upload to `uploadUrl` with PUT (`Content-Type: application/octet-stream`), then
-   * pass `downloadUrl` to `POST /v1/vms/{id}/files/fetch` to have the worker pull it
+   * pass `downloadUrl` to `POST /v1/vms/{id}/files/fetch` to have the server pull it
    * into the guest filesystem.
    */
   presign(id: string, body: FilePresignParams, options?: RequestOptions): APIPromise<PresignResponse> {
