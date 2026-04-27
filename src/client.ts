@@ -223,8 +223,8 @@ export class Fastvm {
   }
 
   /**
-   * Returns 200 when the scheduler is reachable. SDK clients call this on startup to
-   * warm HTTP/2 connections before the first real request.
+   * Returns 200 when the API is reachable. SDK clients call this on startup to warm
+   * HTTP/2 connections before the first real request.
    */
   health(options?: RequestOptions): APIPromise<TopLevelAPI.HealthResponse> {
     return this.get('/healthz', options);
