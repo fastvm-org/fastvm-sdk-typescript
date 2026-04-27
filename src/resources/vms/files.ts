@@ -15,7 +15,7 @@ export class Files extends APIResource {
    * must be a presigned storage URL previously minted by
    * `POST /v1/vms/{id}/files/presign` (URLs from other sources are rejected).
    *
-   * Response mirrors `/v1/vms/{id}/exec` — the worker runs the fetch via the guest
+   * Response mirrors `/v1/vms/{id}/exec`: the worker runs the fetch via the guest
    * agent and reports stdout/stderr/exit code of the underlying download+unpack
    * operation.
    *
@@ -37,20 +37,10 @@ export class Files extends APIResource {
 }
 
 /**
- * Pair of signed URLs scoped to the same per-VM staging object. Both are usable in
- * either direction — the pair supports both uploading a file into a VM and
- * downloading a file out of a VM, depending on how the SDK wires them up:
- *
- * - **Upload (client → VM)**: client PUTs bytes to `uploadUrl`, then calls
- *   `POST /v1/vms/{id}/files/fetch` with `url: downloadUrl` to have the VM pull
- *   the object into the guest filesystem.
- * - **Download (VM → client)**: SDK issues an exec command inside the VM that
- *   pipes file contents to `uploadUrl`
- *   (`tar czf - <path> | curl -T - <uploadUrl>`), then GETs `downloadUrl` from the
- *   client to stream the bytes back.
- *
- * The staging object is auto-deleted ~1 day after creation; the URLs themselves
- * expire after `expiresInSec` seconds.
+ * Pair of signed URLs scoped to the same per-VM staging object. Usable in either
+ * direction: either side (client or VM) PUTs bytes to `uploadUrl`, and either side
+ * GETs them back via `downloadUrl`. URLs expire after `expiresInSec` seconds and
+ * the staging object is auto-deleted after about a day.
  */
 export interface PresignResponse {
   /**
