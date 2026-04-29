@@ -3,7 +3,7 @@
 import { APIResource } from '../../core/resource';
 import * as Shared from '../shared';
 import * as FilesAPI from './files';
-import { FileFetchParams, FilePresignParams, Files, PresignResponse } from './files';
+import { FileFetchParams, FilePresignParams, Files } from './files';
 import { APIPromise } from '../../core/api-promise';
 import { RequestOptions } from '../../internal/request-options';
 import { path } from '../../internal/utils/path';
@@ -310,7 +310,6 @@ export declare namespace Vms {
 
   export {
     Files as Files,
-    type PresignResponse as PresignResponse,
     type FileFetchParams as FileFetchParams,
     type FilePresignParams as FilePresignParams,
   };

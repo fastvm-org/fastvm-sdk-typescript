@@ -12,6 +12,7 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/shared.ts">FilePresignResponse</a></code>
 - <code><a href="./src/resources/shared.ts">FirewallPolicy</a></code>
 - <code><a href="./src/resources/shared.ts">FirewallRule</a></code>
 
@@ -39,14 +40,10 @@ Methods:
 
 ## Files
 
-Types:
-
-- <code><a href="./src/resources/vms/files.ts">PresignResponse</a></code>
-
 Methods:
 
 - <code title="post /v1/vms/{id}/files/fetch">client.vms.files.<a href="./src/resources/vms/files.ts">fetch</a>(id, { ...params }) -> ExecResult</code>
-- <code title="post /v1/vms/{id}/files/presign">client.vms.files.<a href="./src/resources/vms/files.ts">presign</a>(id, { ...params }) -> PresignResponse</code>
+- <code title="post /v1/vms/{id}/files/presign">client.vms.files.<a href="./src/resources/vms/files.ts">presign</a>(id, { ...params }) -> FilePresignResponse</code>
 
 # Snapshots
 
@@ -59,9 +56,27 @@ Types:
 Methods:
 
 - <code title="post /v1/snapshots">client.snapshots.<a href="./src/resources/snapshots.ts">create</a>({ ...params }) -> Snapshot</code>
+- <code title="get /v1/snapshots/{id}">client.snapshots.<a href="./src/resources/snapshots.ts">retrieve</a>(id) -> Snapshot</code>
 - <code title="patch /v1/snapshots/{id}">client.snapshots.<a href="./src/resources/snapshots.ts">update</a>(id, { ...params }) -> Snapshot</code>
 - <code title="get /v1/snapshots">client.snapshots.<a href="./src/resources/snapshots.ts">list</a>() -> SnapshotListResponse</code>
 - <code title="delete /v1/snapshots/{id}">client.snapshots.<a href="./src/resources/snapshots.ts">delete</a>(id) -> SnapshotDeleteResponse</code>
+
+# Builds
+
+Types:
+
+- <code><a href="./src/resources/builds.ts">BuildResponse</a></code>
+
+Methods:
+
+- <code title="post /v1/builds">client.builds.<a href="./src/resources/builds.ts">create</a>({ ...params }) -> BuildResponse</code>
+- <code title="get /v1/builds/{id}">client.builds.<a href="./src/resources/builds.ts">retrieve</a>(id) -> BuildResponse</code>
+
+# BuildContexts
+
+Methods:
+
+- <code title="post /v1/build-contexts/presign">client.buildContexts.<a href="./src/resources/build-contexts.ts">presign</a>() -> FilePresignResponse</code>
 
 # Quotas
 
