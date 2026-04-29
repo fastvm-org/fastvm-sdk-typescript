@@ -18,6 +18,15 @@ export class Snapshots extends APIResource {
   }
 
   /**
+   * Returns the full Snapshot record for the given ID, scoped to the authenticated
+   * org. Used by the SDK's `build()` flow to fetch the completed snapshot after
+   * polling reports `completed`.
+   */
+  retrieve(id: string, options?: RequestOptions): APIPromise<Snapshot> {
+    return this._client.get(path`/v1/snapshots/${id}`, options);
+  }
+
+  /**
    * Rename a snapshot
    */
   update(id: string, body: SnapshotUpdateParams, options?: RequestOptions): APIPromise<Snapshot> {

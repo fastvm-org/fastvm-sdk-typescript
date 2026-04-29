@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-export { Files, type PresignResponse, type FileFetchParams, type FilePresignParams } from './files';
+export { Files, type FileFetchParams, type FilePresignParams } from './files';
 export {
   Vms,
   type ConsoleToken,
