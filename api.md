@@ -25,6 +25,7 @@ Types:
 - <code><a href="./src/resources/vms/vms.ts">Vm</a></code>
 - <code><a href="./src/resources/vms/vms.ts">VmListResponse</a></code>
 - <code><a href="./src/resources/vms/vms.ts">VmDeleteResponse</a></code>
+- <code><a href="./src/resources/vms/vms.ts">VmLaunchResponse</a></code>
 
 Methods:
 
@@ -33,7 +34,7 @@ Methods:
 - <code title="get /v1/vms">client.vms.<a href="./src/resources/vms/vms.ts">list</a>() -> VmListResponse</code>
 - <code title="delete /v1/vms/{id}">client.vms.<a href="./src/resources/vms/vms.ts">delete</a>(id) -> VmDeleteResponse</code>
 - <code title="post /v1/vms/{id}/console-token">client.vms.<a href="./src/resources/vms/vms.ts">consoleToken</a>(id) -> ConsoleToken</code>
-- <code title="post /v1/vms">client.vms.<a href="./src/resources/vms/vms.ts">launch</a>({ ...params }) -> Vm</code>
+- <code title="post /v1/vms">client.vms.<a href="./src/resources/vms/vms.ts">launch</a>({ ...params }) -> VmLaunchResponse</code>
 - <code title="patch /v1/vms/{id}/firewall">client.vms.<a href="./src/resources/vms/vms.ts">patchFirewall</a>(id, { ...params }) -> Vm</code>
 - <code title="post /v1/vms/{id}/exec">client.vms.<a href="./src/resources/vms/vms.ts">run</a>(id, { ...params }) -> ExecResult</code>
 - <code title="put /v1/vms/{id}/firewall">client.vms.<a href="./src/resources/vms/vms.ts">setFirewall</a>(id, { ...params }) -> Vm</code>
