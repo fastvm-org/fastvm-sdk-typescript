@@ -29,9 +29,7 @@ const client = new Fastvm({
   apiKey: process.env['FASTVM_API_KEY'], // This is the default and can be omitted
 });
 
-const vm = await client.vms.launch({ machineType: 'c1m2', name: 'my-vm' });
-
-console.log(vm.id);
+const response = await client.vms.launch({ machineType: 'c1m2', name: 'my-vm' });
 ```
 
 ### Request & Response types
@@ -47,7 +45,7 @@ const client = new Fastvm({
 });
 
 const params: Fastvm.VmLaunchParams = { machineType: 'c1m2', name: 'my-vm' };
-const vm: Fastvm.Vm = await client.vms.launch(params);
+const response: Fastvm.VmLaunchResponse = await client.vms.launch(params);
 ```
 
 Documentation for each method, request param, and response field are available in docstrings and will appear on hover in most modern editors.
@@ -60,15 +58,17 @@ a subclass of `APIError` will be thrown:
 
 <!-- prettier-ignore -->
 ```ts
-const vm = await client.vms.launch({ machineType: 'c1m2', name: 'my-vm' }).catch(async (err) => {
-  if (err instanceof Fastvm.APIError) {
-    console.log(err.status); // 400
-    console.log(err.name); // BadRequestError
-    console.log(err.headers); // {server: 'nginx', ...}
-  } else {
-    throw err;
-  }
-});
+const response = await client.vms
+  .launch({ machineType: 'c1m2', name: 'my-vm' })
+  .catch(async (err) => {
+    if (err instanceof Fastvm.APIError) {
+      console.log(err.status); // 400
+      console.log(err.name); // BadRequestError
+      console.log(err.headers); // {server: 'nginx', ...}
+    } else {
+      throw err;
+    }
+  });
 ```
 
 Error codes are as follows:
@@ -144,11 +144,11 @@ const response = await client.vms.launch({ machineType: 'c1m2', name: 'my-vm' })
 console.log(response.headers.get('X-My-Header'));
 console.log(response.statusText); // access the underlying Response object
 
-const { data: vm, response: raw } = await client.vms
+const { data: response, response: raw } = await client.vms
   .launch({ machineType: 'c1m2', name: 'my-vm' })
   .withResponse();
 console.log(raw.headers.get('X-My-Header'));
-console.log(vm.id);
+console.log(response);
 ```
 
 ### Logging

@@ -67,7 +67,7 @@ export class Vms extends APIResource {
    * The SDK's `launch()` helper handles the 201/202 branching and polling
    * automatically.
    */
-  launch(body: VmLaunchParams, options?: RequestOptions): APIPromise<Vm> {
+  launch(body: VmLaunchParams, options?: RequestOptions): APIPromise<VmLaunchResponse> {
     return this._client.post('/v1/vms', { body, maxRetries: 0, ...options });
   }
 
@@ -206,6 +206,77 @@ export interface VmDeleteResponse {
   deleted: boolean;
 }
 
+/**
+ * VM object as returned by `POST /v1/vms`. On snapshot restore, an optional
+ * `snapshotRestoreWarnings` field may be present if the captured services failed
+ * to re-register on the new VM. Existing SDK callers that don't know about the
+ * field see the unchanged VM wire shape (`omitempty` keeps the field absent on
+ * cold boots and on warning-free restores).
+ */
+export interface VmLaunchResponse extends Vm {
+  /**
+   * Reports best-effort failures during the snapshot-restore service-replay step.
+   * Only present when restoring from a snapshot AND the post-create bulk service
+   * registration failed. The VM is created successfully and usable; the user can
+   * manually re-register the listed services with one `POST /v1/vms/{id}/services`
+   * per service.
+   *
+   * Bulk service registration is atomic at Redis (one Lua call either writes all-N
+   * entries or zero), so partial state ("5 of 8 registered") is impossible — the
+   * response is always either a VM with all services registered or a VM with zero
+   * services and the full list returned here.
+   */
+  snapshotRestoreWarnings?: VmLaunchResponse.SnapshotRestoreWarnings;
+}
+
+export namespace VmLaunchResponse {
+  /**
+   * Reports best-effort failures during the snapshot-restore service-replay step.
+   * Only present when restoring from a snapshot AND the post-create bulk service
+   * registration failed. The VM is created successfully and usable; the user can
+   * manually re-register the listed services with one `POST /v1/vms/{id}/services`
+   * per service.
+   *
+   * Bulk service registration is atomic at Redis (one Lua call either writes all-N
+   * entries or zero), so partial state ("5 of 8 registered") is impossible — the
+   * response is always either a VM with all services registered or a VM with zero
+   * services and the full list returned here.
+   */
+  export interface SnapshotRestoreWarnings {
+    /**
+     * Always `true` when this object is present.
+     */
+    servicesRegistrationFailed: boolean;
+
+    /**
+     * Operator-facing diagnostic for the failure.
+     */
+    reason?: string;
+
+    /**
+     * Services from the snapshot that did not land on the new VM. Caller can
+     * re-register each via `POST /v1/vms/{id}/services`.
+     */
+    unregisteredServices?: Array<SnapshotRestoreWarnings.UnregisteredService>;
+  }
+
+  export namespace SnapshotRestoreWarnings {
+    /**
+     * Captured (name, port, h2c) tuple for a single service registration on a
+     * snapshotted VM. Carried across snapshot/ restore by `POST /v1/vms`
+     * (snapshot-restore branch) so the new VM gets the same service registrations the
+     * source VM had at snapshot time.
+     */
+    export interface UnregisteredService {
+      name: string;
+
+      port: number;
+
+      h2c?: boolean;
+    }
+  }
+}
+
 export interface VmUpdateParams {
   /**
    * Free-form string→string map. Server-enforced limits: up to 256 keys, key length
@@ -301,6 +372,7 @@ export declare namespace Vms {
     type Vm as Vm,
     type VmListResponse as VmListResponse,
     type VmDeleteResponse as VmDeleteResponse,
+    type VmLaunchResponse as VmLaunchResponse,
     type VmUpdateParams as VmUpdateParams,
     type VmLaunchParams as VmLaunchParams,
     type VmPatchFirewallParams as VmPatchFirewallParams,
