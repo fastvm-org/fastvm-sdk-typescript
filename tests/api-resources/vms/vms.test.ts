@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import Fastvm from '@fastvm/sdk';
+import Fastvm from 'fastvm';
 
 const client = new Fastvm({
   apiKey: 'My API Key',
@@ -97,7 +97,11 @@ describe('resource vms', () => {
   });
 
   test('run: required and optional params', async () => {
-    const response = await client.vms.run('id', { command: ['string'], timeoutSec: 1 });
+    const response = await client.vms.run('id', {
+      command: ['string'],
+      stdin: 'stdin',
+      timeoutSec: 1,
+    });
   });
 
   test('setFirewall: only required params', async () => {

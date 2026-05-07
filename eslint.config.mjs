@@ -25,7 +25,7 @@ export default tseslint.config(
         {
           patterns: [
             {
-              regex: '^@fastvm/sdk(/.*)?',
+              regex: '^fastvm(/.*)?',
               message: 'Use a relative import, not a package import.',
             },
           ],

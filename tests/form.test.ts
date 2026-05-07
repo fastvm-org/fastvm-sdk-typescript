@@ -1,5 +1,5 @@
-import { multipartFormRequestOptions, createForm } from '@fastvm/sdk/internal/uploads';
-import { toFile } from '@fastvm/sdk/core/uploads';
+import { multipartFormRequestOptions, createForm } from 'fastvm/internal/uploads';
+import { toFile } from 'fastvm/core/uploads';
 
 describe('form data validation', () => {
   test('valid values do not error', async () => {

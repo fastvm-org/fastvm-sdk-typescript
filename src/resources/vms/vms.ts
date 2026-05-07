@@ -47,9 +47,9 @@ export class Vms extends APIResource {
    * Returns a short-lived token and WebSocket path. Open a WebSocket to
    * `wss://<host><websocketPath>?session=<token>` to attach to the VM's serial
    * console. The WebSocket endpoint itself is intentionally not modeled in this spec
-   * — it uses a capability-URL flow (no API key on upgrade) and a custom binary/text
-   * protocol. See `src/fastvm/lib/console.py` in the Python SDK for a reference
-   * client.
+   * because it uses a capability-URL flow (no API key on upgrade) and a custom
+   * binary/text protocol. See `src/fastvm/lib/console.py` in the Python SDK for a
+   * reference client.
    */
   consoleToken(id: string, options?: RequestOptions): APIPromise<ConsoleToken> {
     return this._client.post(path`/v1/vms/${id}/console-token`, options);
@@ -80,15 +80,25 @@ export class Vms extends APIResource {
   }
 
   /**
-   * Runs a command via the VM's guest agent and returns stdout, stderr, exit code,
-   * and timing. `timeoutSec` bounds server-side execution; clients should set their
-   * own HTTP timeout in addition.
+   * Runs `command` inside the VM. Response shape is determined by the client's
+   * `Accept` header:
    *
-   * 502 responses are transient (worker unreachable, worker-side timeout, or worker
-   * 5xx — all collapsed into 502 at the scheduler). The SDK's `run()` helper does
-   * NOT auto-retry these by default: exec is **not idempotent** — if a 502 hides a
-   * successful exec, a retry may run the command twice. Callers opt in with
-   * `max_retries=N` per call.
+   * - **`Accept: application/json`** (default, omitted, or `* /*`): buffered
+   *   `ExecVMResponse` — the server collects all output and returns a single JSON
+   *   object once the command exits. Per-stream output is capped at 4 MiB; overflow
+   *   bytes are dropped and signalled via `stdoutTruncated` / `stderrTruncated`.
+   * - **`Accept: application/x-ndjson`**: newline-delimited stream of `ExecEvent`s —
+   *   zero or more `stdout`/`stderr` chunks followed by exactly one terminal `exit`
+   *   event. Use this for incremental output (long builds, test runners, live logs).
+   *   No server-side cap.
+   *
+   * Both modes share the same request body. `timeoutSec` bounds server-side
+   * execution; clients should set their own HTTP timeout in addition.
+   *
+   * 502 responses are transient (the upstream VM host is unreachable or returned an
+   * error). The SDK's `run()` helper does NOT auto-retry these by default: exec is
+   * **not idempotent**, so if a 502 hides a successful exec a retry may run the
+   * command twice. Callers opt in with `max_retries=N` per call.
    */
   run(id: string, body: VmRunParams, options?: RequestOptions): APIPromise<ExecResult> {
     return this._client.post(path`/v1/vms/${id}/exec`, { body, maxRetries: 0, ...options });
@@ -114,6 +124,14 @@ export interface ConsoleToken {
   websocketPath: string;
 }
 
+/**
+ * Buffered response shape for `POST /v1/vms/{id}/exec` under
+ * `Accept: application/json`. The server collects the streamed events and returns
+ * this aggregate once the command exits. Per-stream output is capped at 4 MiB;
+ * overflow bytes are dropped and signalled via `stdoutTruncated` /
+ * `stderrTruncated`. Streaming clients (`Accept: application/x-ndjson`) receive
+ * every byte without a cap.
+ */
 export interface ExecResult {
   durationMs: number;
 
@@ -121,10 +139,16 @@ export interface ExecResult {
 
   stderr: string;
 
+  /**
+   * True if the collector dropped stderr bytes past the 4 MiB cap.
+   */
   stderrTruncated: boolean;
 
   stdout: string;
 
+  /**
+   * True if the collector dropped stdout bytes past the 4 MiB cap.
+   */
   stdoutTruncated: boolean;
 
   timedOut: boolean;
@@ -214,7 +238,7 @@ export interface VmLaunchParams {
 
   /**
    * User-facing name (trimmed + whitespace-collapsed, max 64 runes after
-   * normalization — longer values are truncated server-side). Auto-generated as
+   * normalization; longer values are truncated server-side). Auto-generated as
    * `vm-<8-char-id-prefix>` if empty.
    */
   name?: string;
@@ -242,6 +266,13 @@ export interface VmRunParams {
    * `["sh", "-c", "<string>"]`.
    */
   command: Array<string>;
+
+  /**
+   * Optional base64-encoded stdin blob, written to the child's stdin before the
+   * process starts reading much and then closed. Streaming stdin is not supported —
+   * pipe from a file inside the guest if you need that shape.
+   */
+  stdin?: string;
 
   /**
    * Server-side execution timeout in seconds. Must be positive when provided; omit

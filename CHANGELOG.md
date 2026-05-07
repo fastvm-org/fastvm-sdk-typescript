@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.0 (2026-04-29)
+
+Full Changelog: [v0.3.0...v0.4.0](https://github.com/fastvm-org/fastvm-sdk-typescript/compare/v0.3.0...v0.4.0)
+
+### Features
+
+* **api:** api update ([bd76763](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/bd767633405b58d9ab1b5af305580366759e4a9c))
+* **api:** api update ([efa4a92](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/efa4a9231e929664f7d2588b531b502c974e6ea5))
+* support setting headers via env ([7301680](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/7301680453a6b3a2cb74fe97faf5027001d07f58))
+
+
+### Chores
+
+* **internal:** codegen related update ([fe3cb14](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/fe3cb14abfd9e4f8afeed74ec185f3ef3dbb30be))
+
 ## 0.3.0 (2026-04-23)
 
 Full Changelog: [v0.2.0...v0.3.0](https://github.com/fastvm-org/fastvm-sdk-typescript/compare/v0.2.0...v0.3.0)

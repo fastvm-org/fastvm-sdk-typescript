@@ -1,18 +1,21 @@
-# Fastvm TypeScript API Library
+# FastVM TypeScript SDK API Library
 
-[![NPM version](<https://img.shields.io/npm/v/@fastvm/sdk.svg?label=npm%20(stable)>)](https://npmjs.org/package/@fastvm/sdk) ![npm bundle size](https://img.shields.io/bundlephobia/minzip/@fastvm/sdk)
+[![NPM version](<https://img.shields.io/npm/v/fastvm.svg?label=npm%20(stable)>)](https://npmjs.org/package/fastvm) ![npm bundle size](https://img.shields.io/bundlephobia/minzip/fastvm)
 
 This library provides convenient access to the Fastvm REST API from server-side TypeScript or JavaScript.
 
-The full API of this library can be found in [api.md](api.md).
+The REST API documentation can be found on [fastvm.org](https://fastvm.org/docs). The full API of this library can be found in [api.md](api.md).
 
 It is generated with [Stainless](https://www.stainless.com/).
 
 ## Installation
 
 ```sh
-npm install @fastvm/sdk
+npm install git+ssh://git@github.com:fastvm-org/fastvm-sdk-typescript.git
 ```
+
+> [!NOTE]
+> Once this package is [published to npm](https://www.stainless.com/docs/guides/publish), this will become: `npm install fastvm`
 
 ## Usage
 
@@ -20,13 +23,13 @@ The full API of this library can be found in [api.md](api.md).
 
 <!-- prettier-ignore -->
 ```js
-import Fastvm from '@fastvm/sdk';
+import Fastvm from 'fastvm';
 
 const client = new Fastvm({
   apiKey: process.env['FASTVM_API_KEY'], // This is the default and can be omitted
 });
 
-const vm = await client.vms.launch();
+const vm = await client.vms.launch({ machineType: 'c1m2', name: 'my-vm' });
 
 console.log(vm.id);
 ```
@@ -37,13 +40,14 @@ This library includes TypeScript definitions for all request params and response
 
 <!-- prettier-ignore -->
 ```ts
-import Fastvm from '@fastvm/sdk';
+import Fastvm from 'fastvm';
 
 const client = new Fastvm({
   apiKey: process.env['FASTVM_API_KEY'], // This is the default and can be omitted
 });
 
-const vm: Fastvm.Vm = await client.vms.launch();
+const params: Fastvm.VmLaunchParams = { machineType: 'c1m2', name: 'my-vm' };
+const vm: Fastvm.Vm = await client.vms.launch(params);
 ```
 
 Documentation for each method, request param, and response field are available in docstrings and will appear on hover in most modern editors.
@@ -56,7 +60,7 @@ a subclass of `APIError` will be thrown:
 
 <!-- prettier-ignore -->
 ```ts
-const vm = await client.vms.launch().catch(async (err) => {
+const vm = await client.vms.launch({ machineType: 'c1m2', name: 'my-vm' }).catch(async (err) => {
   if (err instanceof Fastvm.APIError) {
     console.log(err.status); // 400
     console.log(err.name); // BadRequestError
@@ -96,7 +100,7 @@ const client = new Fastvm({
 });
 
 // Or, configure per-request:
-await client.vms.launch({
+await client.vms.launch({ machineType: 'c1m2', name: 'my-vm' }, {
   maxRetries: 5,
 });
 ```
@@ -113,7 +117,7 @@ const client = new Fastvm({
 });
 
 // Override per-request:
-await client.vms.launch({
+await client.vms.launch({ machineType: 'c1m2', name: 'my-vm' }, {
   timeout: 5 * 1000,
 });
 ```
@@ -136,11 +140,13 @@ Unlike `.asResponse()` this method consumes the body, returning once it is parse
 ```ts
 const client = new Fastvm();
 
-const response = await client.vms.launch().asResponse();
+const response = await client.vms.launch({ machineType: 'c1m2', name: 'my-vm' }).asResponse();
 console.log(response.headers.get('X-My-Header'));
 console.log(response.statusText); // access the underlying Response object
 
-const { data: vm, response: raw } = await client.vms.launch().withResponse();
+const { data: vm, response: raw } = await client.vms
+  .launch({ machineType: 'c1m2', name: 'my-vm' })
+  .withResponse();
 console.log(raw.headers.get('X-My-Header'));
 console.log(vm.id);
 ```
@@ -159,7 +165,7 @@ The log level can be configured in two ways:
 2. Using the `logLevel` client option (overrides the environment variable if set)
 
 ```ts
-import Fastvm from '@fastvm/sdk';
+import Fastvm from 'fastvm';
 
 const client = new Fastvm({
   logLevel: 'debug', // Show all log messages
@@ -187,7 +193,7 @@ When providing a custom logger, the `logLevel` option still controls which messa
 below the configured level will not be sent to your logger.
 
 ```ts
-import Fastvm from '@fastvm/sdk';
+import Fastvm from 'fastvm';
 import pino from 'pino';
 
 const logger = pino();
@@ -256,7 +262,7 @@ globalThis.fetch = fetch;
 Or pass it to the client:
 
 ```ts
-import Fastvm from '@fastvm/sdk';
+import Fastvm from 'fastvm';
 import fetch from 'my-fetch';
 
 const client = new Fastvm({ fetch });
@@ -267,7 +273,7 @@ const client = new Fastvm({ fetch });
 If you want to set custom `fetch` options without overriding the `fetch` function, you can provide a `fetchOptions` object when instantiating the client or making a request. (Request-specific options override client options.)
 
 ```ts
-import Fastvm from '@fastvm/sdk';
+import Fastvm from 'fastvm';
 
 const client = new Fastvm({
   fetchOptions: {
@@ -284,7 +290,7 @@ options to requests:
 <img src="https://raw.githubusercontent.com/stainless-api/sdk-assets/refs/heads/main/node.svg" align="top" width="18" height="21"> **Node** <sup>[[docs](https://github.com/nodejs/undici/blob/main/docs/docs/api/ProxyAgent.md#example---proxyagent-with-fetch)]</sup>
 
 ```ts
-import Fastvm from '@fastvm/sdk';
+import Fastvm from 'fastvm';
 import * as undici from 'undici';
 
 const proxyAgent = new undici.ProxyAgent('http://localhost:8888');
@@ -298,7 +304,7 @@ const client = new Fastvm({
 <img src="https://raw.githubusercontent.com/stainless-api/sdk-assets/refs/heads/main/bun.svg" align="top" width="18" height="21"> **Bun** <sup>[[docs](https://bun.sh/guides/http/proxy)]</sup>
 
 ```ts
-import Fastvm from '@fastvm/sdk';
+import Fastvm from 'fastvm';
 
 const client = new Fastvm({
   fetchOptions: {
@@ -310,7 +316,7 @@ const client = new Fastvm({
 <img src="https://raw.githubusercontent.com/stainless-api/sdk-assets/refs/heads/main/deno.svg" align="top" width="18" height="21"> **Deno** <sup>[[docs](https://docs.deno.com/api/deno/~/Deno.createHttpClient)]</sup>
 
 ```ts
-import Fastvm from 'npm:@fastvm/sdk';
+import Fastvm from 'npm:fastvm';
 
 const httpClient = Deno.createHttpClient({ proxy: { url: 'http://localhost:8888' } });
 const client = new Fastvm({
