@@ -14,7 +14,7 @@
  */
 import { Fastvm, type ClientOptions } from '../client';
 import { Vms, type Vm, type VmLaunchParams } from '../resources/vms/vms';
-import type { PresignResponse } from '../resources/vms/files';
+import type { FilePresignResponse } from '../resources/shared';
 import type { RequestOptions } from '../internal/request-options';
 import type { APIPromise } from '../core/api-promise';
 import { FileTransferError, VMLaunchError, VMNotReadyError } from './errors';
@@ -327,7 +327,7 @@ function shellQuote(s: string): string {
   return `'${s.replace(/'/g, `'\\''`)}'`;
 }
 
-function assertUnderLimit(size: number, presign: PresignResponse): void {
+function assertUnderLimit(size: number, presign: FilePresignResponse): void {
   if (size > presign.maxUploadBytes) {
     throw new FileTransferError(`upload size ${size} exceeds VM limit ${presign.maxUploadBytes}`);
   }
