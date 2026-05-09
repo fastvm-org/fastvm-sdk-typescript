@@ -2,6 +2,14 @@
 
 export { Files, type FileFetchParams, type FilePresignParams } from './files';
 export {
+  Services,
+  type Service,
+  type ServiceListResponse,
+  type ServiceUpdateParams,
+  type ServiceDeleteParams,
+  type ServiceRegisterParams,
+} from './services';
+export {
   Vms,
   type ConsoleToken,
   type ExecResult,
@@ -10,6 +18,7 @@ export {
   type VmDeleteResponse,
   type VmLaunchResponse,
   type VmUpdateParams,
+  type VmListParams,
   type VmLaunchParams,
   type VmPatchFirewallParams,
   type VmRunParams,
