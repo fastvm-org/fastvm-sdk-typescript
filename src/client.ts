@@ -19,6 +19,8 @@ import * as API from './resources/index';
 import * as TopLevelAPI from './resources/top-level';
 import { HealthResponse } from './resources/top-level';
 import { APIPromise } from './core/api-promise';
+import { BuildContexts } from './resources/build-contexts';
+import { BuildCreateParams, BuildResponse, Builds } from './resources/builds';
 import { OrgQuotaUsage, OrgQuotaValues, Quotas } from './resources/quotas';
 import {
   Snapshot,
@@ -34,6 +36,8 @@ import {
   Vm,
   VmDeleteResponse,
   VmLaunchParams,
+  VmLaunchResponse,
+  VmListParams,
   VmListResponse,
   VmPatchFirewallParams,
   VmRunParams,
@@ -767,6 +771,14 @@ export class Fastvm {
    */
   snapshots: API.Snapshots = new API.Snapshots(this);
   /**
+   * Build snapshots from a Docker image ref or Dockerfile
+   */
+  builds: API.Builds = new API.Builds(this);
+  /**
+   * Build snapshots from a Docker image ref or Dockerfile
+   */
+  buildContexts: API.BuildContexts = new API.BuildContexts(this);
+  /**
    * Org quotas and usage
    */
   quotas: API.Quotas = new API.Quotas(this);
@@ -774,6 +786,8 @@ export class Fastvm {
 
 Fastvm.Vms = Vms;
 Fastvm.Snapshots = Snapshots;
+Fastvm.Builds = Builds;
+Fastvm.BuildContexts = BuildContexts;
 Fastvm.Quotas = Quotas;
 
 export declare namespace Fastvm {
@@ -788,7 +802,9 @@ export declare namespace Fastvm {
     type Vm as Vm,
     type VmListResponse as VmListResponse,
     type VmDeleteResponse as VmDeleteResponse,
+    type VmLaunchResponse as VmLaunchResponse,
     type VmUpdateParams as VmUpdateParams,
+    type VmListParams as VmListParams,
     type VmLaunchParams as VmLaunchParams,
     type VmPatchFirewallParams as VmPatchFirewallParams,
     type VmRunParams as VmRunParams,
@@ -804,8 +820,17 @@ export declare namespace Fastvm {
     type SnapshotUpdateParams as SnapshotUpdateParams,
   };
 
+  export {
+    Builds as Builds,
+    type BuildResponse as BuildResponse,
+    type BuildCreateParams as BuildCreateParams,
+  };
+
+  export { BuildContexts as BuildContexts };
+
   export { Quotas as Quotas, type OrgQuotaUsage as OrgQuotaUsage, type OrgQuotaValues as OrgQuotaValues };
 
+  export type FilePresignResponse = API.FilePresignResponse;
   export type FirewallPolicy = API.FirewallPolicy;
   export type FirewallRule = API.FirewallRule;
 }

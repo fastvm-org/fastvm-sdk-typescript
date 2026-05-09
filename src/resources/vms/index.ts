@@ -1,6 +1,14 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-export { Files, type PresignResponse, type FileFetchParams, type FilePresignParams } from './files';
+export { Files, type FileFetchParams, type FilePresignParams } from './files';
+export {
+  Services,
+  type Service,
+  type ServiceListResponse,
+  type ServiceUpdateParams,
+  type ServiceDeleteParams,
+  type ServiceRegisterParams,
+} from './services';
 export {
   Vms,
   type ConsoleToken,
@@ -8,7 +16,9 @@ export {
   type Vm,
   type VmListResponse,
   type VmDeleteResponse,
+  type VmLaunchResponse,
   type VmUpdateParams,
+  type VmListParams,
   type VmLaunchParams,
   type VmPatchFirewallParams,
   type VmRunParams,

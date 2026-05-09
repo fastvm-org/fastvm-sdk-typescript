@@ -11,10 +11,22 @@ import { path } from '../internal/utils/path';
  */
 export class Snapshots extends APIResource {
   /**
-   * Create a snapshot
+   * Captures a VM's state into a customer-visible snapshot. Supported on `running`
+   * and `paused` VMs; returns 201 Created with the new snapshot in both cases. On a
+   * paused VM, repeated calls within the same pause cycle are idempotent: the second
+   * call returns the same snapshot record without modification.
    */
   create(body: SnapshotCreateParams, options?: RequestOptions): APIPromise<Snapshot> {
     return this._client.post('/v1/snapshots', { body, maxRetries: 0, ...options });
+  }
+
+  /**
+   * Returns the full Snapshot record for the given ID, scoped to the authenticated
+   * org. Used by the SDK's `build()` flow to fetch the completed snapshot after
+   * polling reports `completed`.
+   */
+  retrieve(id: string, options?: RequestOptions): APIPromise<Snapshot> {
+    return this._client.get(path`/v1/snapshots/${id}`, options);
   }
 
   /**
@@ -56,6 +68,14 @@ export interface Snapshot {
 
   vmId: string;
 
+  /**
+   * Environment variable string→string map injected into the VM at boot. Keys must
+   * be 1–256 bytes and match shell-variable name (`[A-Za-z_][A-Za-z0-9_]*`); values
+   * may not contain newline, carriage return, or null bytes. Total JSON encoding
+   * ≤65536 bytes.
+   */
+  envVars?: { [key: string]: string };
+
   firewall?: Shared.FirewallPolicy;
 
   /**
@@ -63,6 +83,27 @@ export interface Snapshot {
    * 1–256 bytes, value length ≤4096 bytes, total JSON encoding ≤65536 bytes.
    */
   metadata?: { [key: string]: string };
+
+  /**
+   * Captured service registrations from the source VM at snapshot time.
+   */
+  services?: Array<Snapshot.Service>;
+}
+
+export namespace Snapshot {
+  /**
+   * Captured (name, port, h2c) tuple for a single service registration on a
+   * snapshotted VM. Carried across snapshot/ restore by `POST /v1/vms`
+   * (snapshot-restore branch) so the new VM gets the same service registrations the
+   * source VM had at snapshot time.
+   */
+  export interface Service {
+    name: string;
+
+    port: number;
+
+    h2c?: boolean;
+  }
 }
 
 export type SnapshotListResponse = Array<Snapshot>;

@@ -3,12 +3,22 @@
 import { APIResource } from '../../core/resource';
 import * as Shared from '../shared';
 import * as FilesAPI from './files';
-import { FileFetchParams, FilePresignParams, Files, PresignResponse } from './files';
+import { FileFetchParams, FilePresignParams, Files } from './files';
+import * as ServicesAPI from './services';
+import {
+  Service,
+  ServiceDeleteParams,
+  ServiceListResponse,
+  ServiceRegisterParams,
+  ServiceUpdateParams,
+  Services,
+} from './services';
 import { APIPromise } from '../../core/api-promise';
 import { RequestOptions } from '../../internal/request-options';
 import { path } from '../../internal/utils/path';
 
 export class Vms extends APIResource {
+  services: ServicesAPI.Services = new ServicesAPI.Services(this._client);
   files: FilesAPI.Files = new FilesAPI.Files(this._client);
 
   /**
@@ -30,10 +40,12 @@ export class Vms extends APIResource {
   /**
    * Lists all non-deleted VMs for the authenticated org. Supports metadata-equality
    * filtering; callers pass repeated query parameters of the form
-   * `metadata.<key>=<value>` (e.g. `metadata.env=prod&metadata.role=api`).
+   * `metadata.<key>=<value>` (e.g. `metadata.env=prod&metadata.role=api`). The
+   * optional `status` query filter narrows by lifecycle status (e.g.
+   * `?status=paused`).
    */
-  list(options?: RequestOptions): APIPromise<VmListResponse> {
-    return this._client.get('/v1/vms', options);
+  list(query: VmListParams | null | undefined = {}, options?: RequestOptions): APIPromise<VmListResponse> {
+    return this._client.get('/v1/vms', { query, ...options });
   }
 
   /**
@@ -67,7 +79,7 @@ export class Vms extends APIResource {
    * The SDK's `launch()` helper handles the 201/202 branching and polling
    * automatically.
    */
-  launch(body: VmLaunchParams, options?: RequestOptions): APIPromise<Vm> {
+  launch(body: VmLaunchParams, options?: RequestOptions): APIPromise<VmLaunchResponse> {
     return this._client.post('/v1/vms', { body, maxRetries: 0, ...options });
   }
 
@@ -77,6 +89,34 @@ export class Vms extends APIResource {
    */
   patchFirewall(id: string, body: VmPatchFirewallParams, options?: RequestOptions): APIPromise<Vm> {
     return this._client.patch(path`/v1/vms/${id}/firewall`, { body, ...options });
+  }
+
+  /**
+   * Captures the VM state, frees the worker and all customer-facing quotas, and
+   * transitions the VM to `paused`. Idempotent on already-paused VMs (returns 200
+   * with the current state). Synchronous; ~3 s end-to-end.
+   */
+  pause(id: string, options?: RequestOptions): APIPromise<Vm> {
+    return this._client.post(path`/v1/vms/${id}/pause`, options);
+  }
+
+  /**
+   * Resets the TTL countdown to a fresh `seconds` budget. From `running`, the
+   * deadline moves to `now + seconds*1000`. From `paused`, the remaining-budget is
+   * reset to `seconds*1000` and takes effect on next resume. 409 if no TTL is
+   * configured.
+   */
+  refreshTtl(id: string, options?: RequestOptions): APIPromise<Vm> {
+    return this._client.post(path`/v1/vms/${id}/ttl/refresh`, options);
+  }
+
+  /**
+   * Restores the VM's prior state, re-acquires quota, and transitions to `running`.
+   * Sync-when-fast / async-when-queued: returns 200 if the VM is running inline, or
+   * 202 if queued for cluster capacity. Idempotent on already-running.
+   */
+  resume(id: string, options?: RequestOptions): APIPromise<Vm> {
+    return this._client.post(path`/v1/vms/${id}/resume`, options);
   }
 
   /**
@@ -170,15 +210,40 @@ export interface Vm {
   orgId: string;
 
   /**
-   * Lifecycle status. Known values: `provisioning`, `running`, `stopped`,
-   * `deleting`, `error`. Terminal failure statuses are `error` and `stopped`; any
-   * other non-`running` value indicates the VM is still transitioning. Additional
-   * values may be introduced in future server versions; clients should treat unknown
-   * values as "in transition" rather than as hard errors.
+   * Lifecycle status. Known values: `provisioning`, `running`, `stopped`, `pausing`,
+   * `paused`, `resuming`, `deleting`, `error`. Terminal failure statuses are `error`
+   * and `stopped`; transitional values (`provisioning`, `pausing`, `resuming`,
+   * `deleting`) indicate the VM is in flight. Additional values may be introduced in
+   * future server versions; clients should treat unknown values as "in transition"
+   * rather than as hard errors.
    */
   status: string;
 
   deletedAt?: string | null;
+
+  /**
+   * Read-only composed view: `firewall` (the user policy) unioned with per-service
+   * auto-rules from this VM's registered services. Each auto-rule has source CIDR
+   * `::/0` and a `description` of the form `auto: proxy service <name>`. The same
+   * policy is what the worker firewall actually enforces. Set `firewall` to mutate;
+   * this field is computed per-response from `firewall` and the current service
+   * registry, never persisted.
+   */
+  effectiveFirewall?: Shared.FirewallPolicy;
+
+  /**
+   * Environment variable string→string map injected into the VM at boot. Keys must
+   * be 1–256 bytes and match shell-variable name (`[A-Za-z_][A-Za-z0-9_]*`); values
+   * may not contain newline, carriage return, or null bytes. Total JSON encoding
+   * ≤65536 bytes.
+   */
+  envVars?: { [key: string]: string };
+
+  /**
+   * Absolute timestamp in ms when the TTL fires. Set only while the VM is `running`
+   * (the countdown freezes on pause).
+   */
+  expiresAtMs?: number;
 
   firewall?: Shared.FirewallPolicy;
 
@@ -190,12 +255,51 @@ export interface Vm {
    */
   metadata?: { [key: string]: string };
 
+  /**
+   * When the VM became paused; null otherwise.
+   */
+  pausedAt?: string | null;
+
   publicIpv6?: string;
 
   /**
    * Source snapshot or image name (empty on fresh boot).
    */
   sourceName?: string;
+
+  /**
+   * Per-VM auto-action timer. The cycle ticks down while the VM is `running` and
+   * freezes on pause. `seconds` is the original cycle duration; refresh and
+   * PATCH-time updates reset to this value.
+   */
+  ttl?: Vm.Ttl | null;
+
+  /**
+   * Remaining cycle budget in ms. Set only while the VM is paused; restored to
+   * `expiresAtMs` on resume.
+   */
+  ttlRemainingMs?: number;
+}
+
+export namespace Vm {
+  /**
+   * Per-VM auto-action timer. The cycle ticks down while the VM is `running` and
+   * freezes on pause. `seconds` is the original cycle duration; refresh and
+   * PATCH-time updates reset to this value.
+   */
+  export interface Ttl {
+    /**
+     * Action taken on expiry. `pause` re-arms the cycle for the next running session;
+     * `delete` is terminal.
+     */
+    action: 'pause' | 'delete';
+
+    /**
+     * Cycle duration. Refresh resets to this value. Capped at 1 year (31536000s);
+     * larger values are rejected with 400.
+     */
+    seconds: number;
+  }
 }
 
 export type VmListResponse = Array<Vm>;
@@ -206,6 +310,77 @@ export interface VmDeleteResponse {
   deleted: boolean;
 }
 
+/**
+ * VM object as returned by `POST /v1/vms`. On snapshot restore, an optional
+ * `snapshotRestoreWarnings` field may be present if the captured services failed
+ * to re-register on the new VM. Existing SDK callers that don't know about the
+ * field see the unchanged VM wire shape (`omitempty` keeps the field absent on
+ * cold boots and on warning-free restores).
+ */
+export interface VmLaunchResponse extends Vm {
+  /**
+   * Reports best-effort failures during the snapshot-restore service-replay step.
+   * Only present when restoring from a snapshot AND the post-create bulk service
+   * registration failed. The VM is created successfully and usable; the user can
+   * manually re-register the listed services with one `POST /v1/vms/{id}/services`
+   * per service.
+   *
+   * Bulk service registration is atomic at Redis (one Lua call either writes all-N
+   * entries or zero), so partial state ("5 of 8 registered") is impossible — the
+   * response is always either a VM with all services registered or a VM with zero
+   * services and the full list returned here.
+   */
+  snapshotRestoreWarnings?: VmLaunchResponse.SnapshotRestoreWarnings;
+}
+
+export namespace VmLaunchResponse {
+  /**
+   * Reports best-effort failures during the snapshot-restore service-replay step.
+   * Only present when restoring from a snapshot AND the post-create bulk service
+   * registration failed. The VM is created successfully and usable; the user can
+   * manually re-register the listed services with one `POST /v1/vms/{id}/services`
+   * per service.
+   *
+   * Bulk service registration is atomic at Redis (one Lua call either writes all-N
+   * entries or zero), so partial state ("5 of 8 registered") is impossible — the
+   * response is always either a VM with all services registered or a VM with zero
+   * services and the full list returned here.
+   */
+  export interface SnapshotRestoreWarnings {
+    /**
+     * Always `true` when this object is present.
+     */
+    servicesRegistrationFailed: boolean;
+
+    /**
+     * Operator-facing diagnostic for the failure.
+     */
+    reason?: string;
+
+    /**
+     * Services from the snapshot that did not land on the new VM. Caller can
+     * re-register each via `POST /v1/vms/{id}/services`.
+     */
+    unregisteredServices?: Array<SnapshotRestoreWarnings.UnregisteredService>;
+  }
+
+  export namespace SnapshotRestoreWarnings {
+    /**
+     * Captured (name, port, h2c) tuple for a single service registration on a
+     * snapshotted VM. Carried across snapshot/ restore by `POST /v1/vms`
+     * (snapshot-restore branch) so the new VM gets the same service registrations the
+     * source VM had at snapshot time.
+     */
+    export interface UnregisteredService {
+      name: string;
+
+      port: number;
+
+      h2c?: boolean;
+    }
+  }
+}
+
 export interface VmUpdateParams {
   /**
    * Free-form string→string map. Server-enforced limits: up to 256 keys, key length
@@ -214,6 +389,42 @@ export interface VmUpdateParams {
   metadata?: { [key: string]: string };
 
   name?: string;
+
+  /**
+   * Per-VM auto-action timer. The cycle ticks down while the VM is `running` and
+   * freezes on pause. `seconds` is the original cycle duration; refresh and
+   * PATCH-time updates reset to this value.
+   */
+  ttl?: VmUpdateParams.Ttl | null;
+}
+
+export namespace VmUpdateParams {
+  /**
+   * Per-VM auto-action timer. The cycle ticks down while the VM is `running` and
+   * freezes on pause. `seconds` is the original cycle duration; refresh and
+   * PATCH-time updates reset to this value.
+   */
+  export interface Ttl {
+    /**
+     * Action taken on expiry. `pause` re-arms the cycle for the next running session;
+     * `delete` is terminal.
+     */
+    action: 'pause' | 'delete';
+
+    /**
+     * Cycle duration. Refresh resets to this value. Capped at 1 year (31536000s);
+     * larger values are rejected with 400.
+     */
+    seconds: number;
+  }
+}
+
+export interface VmListParams {
+  /**
+   * Restrict to VMs with this status. Accepts any value of `VMStatus`; unknown
+   * values return an empty list.
+   */
+  status?: string;
 }
 
 export interface VmLaunchParams {
@@ -221,6 +432,14 @@ export interface VmLaunchParams {
    * Override the default disk size (GiB).
    */
   diskGiB?: number;
+
+  /**
+   * Environment variable string→string map injected into the VM at boot. Keys must
+   * be 1–256 bytes and match shell-variable name (`[A-Za-z_][A-Za-z0-9_]*`); values
+   * may not contain newline, carriage return, or null bytes. Total JSON encoding
+   * ≤65536 bytes.
+   */
+  envVars?: { [key: string]: string };
 
   firewall?: Shared.FirewallPolicy;
 
@@ -247,6 +466,34 @@ export interface VmLaunchParams {
    * Snapshot ID to restore from.
    */
   snapshotId?: string;
+
+  /**
+   * Per-VM auto-action timer. The cycle ticks down while the VM is `running` and
+   * freezes on pause. `seconds` is the original cycle duration; refresh and
+   * PATCH-time updates reset to this value.
+   */
+  ttl?: VmLaunchParams.Ttl;
+}
+
+export namespace VmLaunchParams {
+  /**
+   * Per-VM auto-action timer. The cycle ticks down while the VM is `running` and
+   * freezes on pause. `seconds` is the original cycle duration; refresh and
+   * PATCH-time updates reset to this value.
+   */
+  export interface Ttl {
+    /**
+     * Action taken on expiry. `pause` re-arms the cycle for the next running session;
+     * `delete` is terminal.
+     */
+    action: 'pause' | 'delete';
+
+    /**
+     * Cycle duration. Refresh resets to this value. Capped at 1 year (31536000s);
+     * larger values are rejected with 400.
+     */
+    seconds: number;
+  }
 }
 
 export interface VmPatchFirewallParams {
@@ -292,6 +539,7 @@ export interface VmSetFirewallParams {
   ingress?: Array<Shared.FirewallRule>;
 }
 
+Vms.Services = Services;
 Vms.Files = Files;
 
 export declare namespace Vms {
@@ -301,7 +549,9 @@ export declare namespace Vms {
     type Vm as Vm,
     type VmListResponse as VmListResponse,
     type VmDeleteResponse as VmDeleteResponse,
+    type VmLaunchResponse as VmLaunchResponse,
     type VmUpdateParams as VmUpdateParams,
+    type VmListParams as VmListParams,
     type VmLaunchParams as VmLaunchParams,
     type VmPatchFirewallParams as VmPatchFirewallParams,
     type VmRunParams as VmRunParams,
@@ -309,8 +559,16 @@ export declare namespace Vms {
   };
 
   export {
+    Services as Services,
+    type Service as Service,
+    type ServiceListResponse as ServiceListResponse,
+    type ServiceUpdateParams as ServiceUpdateParams,
+    type ServiceDeleteParams as ServiceDeleteParams,
+    type ServiceRegisterParams as ServiceRegisterParams,
+  };
+
+  export {
     Files as Files,
-    type PresignResponse as PresignResponse,
     type FileFetchParams as FileFetchParams,
     type FilePresignParams as FilePresignParams,
   };

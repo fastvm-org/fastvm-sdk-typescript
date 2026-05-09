@@ -1,6 +1,8 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 export * from './shared';
+export { BuildContexts } from './build-contexts';
+export { Builds, type BuildResponse, type BuildCreateParams } from './builds';
 export { Quotas, type OrgQuotaUsage, type OrgQuotaValues } from './quotas';
 export {
   Snapshots,
@@ -17,7 +19,9 @@ export {
   type Vm,
   type VmListResponse,
   type VmDeleteResponse,
+  type VmLaunchResponse,
   type VmUpdateParams,
+  type VmListParams,
   type VmLaunchParams,
   type VmPatchFirewallParams,
   type VmRunParams,
