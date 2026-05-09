@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.5.0 (2026-05-09)
+
+Full Changelog: [v0.4.2...v0.5.0](https://github.com/fastvm-org/fastvm-sdk-typescript/compare/v0.4.2...v0.5.0)
+
+### Features
+
+* **api:** api update ([8421df8](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/8421df861a62cd916eebd56adc1becdd64df7818))
+* **api:** api update ([7b7a564](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/7b7a56476763eaa726bdbd70aeb4785df95d853d))
+* **api:** api update ([145f8ad](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/145f8adaeba9e69e760178658a9c4d8cc8811a98))
+
+
+### Chores
+
+* **format:** run eslint and prettier separately ([594b8dd](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/594b8dd91d7eb08bd0318ac5bbe3cda5c2c83633))
+* redact api-key headers in debug logs ([5a595a4](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/5a595a429dcc093305049f3bb19919858531c150))
+
 ## 0.4.2 (2026-05-09)
 
 Full Changelog: [v0.4.1...v0.4.2](https://github.com/fastvm-org/fastvm-sdk-typescript/compare/v0.4.1...v0.4.2)
