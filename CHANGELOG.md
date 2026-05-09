@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.1 (2026-05-08)
+
+Full Changelog: [v0.4.0...v0.4.1](https://github.com/fastvm-org/fastvm-sdk-typescript/compare/v0.4.0...v0.4.1)
+
+### Bug Fixes
+
+* **lib:** update PresignResponse import after \$shared hoist ([#14](https://github.com/fastvm-org/fastvm-sdk-typescript/issues/14)) ([1661cdb](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/1661cdbffd5027a20aa2163edaf8bd3f9cafbfe2))
+
+
+### Chores
+
+* **format:** run eslint and prettier separately ([cd8d255](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/cd8d2551e375e84e49b0cabc1e132f78cb4504ee))
+
 ## 0.4.0 (2026-04-29)
 
 Full Changelog: [v0.3.0...v0.4.0](https://github.com/fastvm-org/fastvm-sdk-typescript/compare/v0.3.0...v0.4.0)
