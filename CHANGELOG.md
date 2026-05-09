@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.2 (2026-05-09)
+
+Full Changelog: [v0.4.1...v0.4.2](https://github.com/fastvm-org/fastvm-sdk-typescript/compare/v0.4.1...v0.4.2)
+
+### Chores
+
+* **deps:** regenerate pnpm lockfile to drop removed eslint-plugin-prettier ([b85fc81](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/b85fc81842d6131478d3482149f8308f46d40bfa))
+* **format:** run prettier on regenerated pnpm-lock.yaml ([f89e124](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/f89e12472d7636cf32ea0a05abf9c883a743d16e))
+
 ## 0.4.1 (2026-05-08)
 
 Full Changelog: [v0.4.0...v0.4.1](https://github.com/fastvm-org/fastvm-sdk-typescript/compare/v0.4.0...v0.4.1)
