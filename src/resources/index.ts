@@ -21,6 +21,7 @@ export {
   type VmDeleteResponse,
   type VmLaunchResponse,
   type VmUpdateParams,
+  type VmListParams,
   type VmLaunchParams,
   type VmPatchFirewallParams,
   type VmRunParams,

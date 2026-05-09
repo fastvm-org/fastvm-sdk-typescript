@@ -31,13 +31,30 @@ Methods:
 
 - <code title="get /v1/vms/{id}">client.vms.<a href="./src/resources/vms/vms.ts">retrieve</a>(id) -> Vm</code>
 - <code title="patch /v1/vms/{id}">client.vms.<a href="./src/resources/vms/vms.ts">update</a>(id, { ...params }) -> Vm</code>
-- <code title="get /v1/vms">client.vms.<a href="./src/resources/vms/vms.ts">list</a>() -> VmListResponse</code>
+- <code title="get /v1/vms">client.vms.<a href="./src/resources/vms/vms.ts">list</a>({ ...params }) -> VmListResponse</code>
 - <code title="delete /v1/vms/{id}">client.vms.<a href="./src/resources/vms/vms.ts">delete</a>(id) -> VmDeleteResponse</code>
 - <code title="post /v1/vms/{id}/console-token">client.vms.<a href="./src/resources/vms/vms.ts">consoleToken</a>(id) -> ConsoleToken</code>
 - <code title="post /v1/vms">client.vms.<a href="./src/resources/vms/vms.ts">launch</a>({ ...params }) -> VmLaunchResponse</code>
 - <code title="patch /v1/vms/{id}/firewall">client.vms.<a href="./src/resources/vms/vms.ts">patchFirewall</a>(id, { ...params }) -> Vm</code>
+- <code title="post /v1/vms/{id}/pause">client.vms.<a href="./src/resources/vms/vms.ts">pause</a>(id) -> Vm</code>
+- <code title="post /v1/vms/{id}/ttl/refresh">client.vms.<a href="./src/resources/vms/vms.ts">refreshTtl</a>(id) -> Vm</code>
+- <code title="post /v1/vms/{id}/resume">client.vms.<a href="./src/resources/vms/vms.ts">resume</a>(id) -> Vm</code>
 - <code title="post /v1/vms/{id}/exec">client.vms.<a href="./src/resources/vms/vms.ts">run</a>(id, { ...params }) -> ExecResult</code>
 - <code title="put /v1/vms/{id}/firewall">client.vms.<a href="./src/resources/vms/vms.ts">setFirewall</a>(id, { ...params }) -> Vm</code>
+
+## Services
+
+Types:
+
+- <code><a href="./src/resources/vms/services.ts">Service</a></code>
+- <code><a href="./src/resources/vms/services.ts">ServiceListResponse</a></code>
+
+Methods:
+
+- <code title="put /v1/vms/{id}/services/{serviceName}">client.vms.services.<a href="./src/resources/vms/services.ts">update</a>(serviceName, { ...params }) -> Service</code>
+- <code title="get /v1/vms/{id}/services">client.vms.services.<a href="./src/resources/vms/services.ts">list</a>(id) -> ServiceListResponse</code>
+- <code title="delete /v1/vms/{id}/services/{serviceName}">client.vms.services.<a href="./src/resources/vms/services.ts">delete</a>(serviceName, { ...params }) -> void</code>
+- <code title="post /v1/vms/{id}/services">client.vms.services.<a href="./src/resources/vms/services.ts">register</a>(id, { ...params }) -> Service</code>
 
 ## Files
 
