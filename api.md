@@ -26,6 +26,7 @@ Types:
 - <code><a href="./src/resources/vms/vms.ts">VmListResponse</a></code>
 - <code><a href="./src/resources/vms/vms.ts">VmDeleteResponse</a></code>
 - <code><a href="./src/resources/vms/vms.ts">VmLaunchResponse</a></code>
+- <code><a href="./src/lib/client.ts">ExecEvent</a></code>
 
 Methods:
 
@@ -40,6 +41,7 @@ Methods:
 - <code title="post /v1/vms/{id}/ttl/refresh">client.vms.<a href="./src/resources/vms/vms.ts">refreshTtl</a>(id) -> Vm</code>
 - <code title="post /v1/vms/{id}/resume">client.vms.<a href="./src/resources/vms/vms.ts">resume</a>(id) -> Vm</code>
 - <code title="post /v1/vms/{id}/exec">client.vms.<a href="./src/resources/vms/vms.ts">run</a>(id, { ...params }) -> ExecResult</code>
+- <code title="post /v1/vms/{id}/exec">client.vms.<a href="./src/lib/client.ts">stream</a>(id, { ...params }) -> AsyncIterable&lt;ExecEvent&gt;</code>
 - <code title="put /v1/vms/{id}/firewall">client.vms.<a href="./src/resources/vms/vms.ts">setFirewall</a>(id, { ...params }) -> Vm</code>
 
 ## Services

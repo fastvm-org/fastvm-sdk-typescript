@@ -4,5 +4,5 @@
  * examples, design notes). Structured specs live in `fastvm-mono/api/helpers.yaml`.
  */
 export { FastvmClient } from './client';
-export type { LaunchOptions, WaitForReadyOptions, TransferOptions } from './client';
+export type { LaunchOptions, WaitForReadyOptions, TransferOptions, ExecEvent, StreamOptions } from './client';
 export { FileTransferError, VMLaunchError, VMNotReadyError } from './errors';
