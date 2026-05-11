@@ -129,11 +129,7 @@ class VmsWithHelpers extends Vms {
    * }
    * ```
    */
-  async *stream(
-    id: string,
-    body: VmRunParams,
-    opts: StreamOptions = {},
-  ): AsyncIterable<ExecEvent> {
+  async *stream(id: string, body: VmRunParams, opts: StreamOptions = {}): AsyncIterable<ExecEvent> {
     const baseURL = this._client.baseURL.replace(/\/$/, '');
     const url = `${baseURL}/v1/vms/${id}/exec`;
     const headers: Record<string, string> = {
@@ -519,11 +515,12 @@ async function* parseNdjsonStream<T>(
 
 function parseExecEvent(raw: string): ExecEvent {
   const obj = JSON.parse(raw) as { t: string; d?: string; c?: number; to?: boolean; ms?: number };
-  return {
+  const event: ExecEvent = {
     type: obj.t as 'o' | 'e' | 'x',
     data: obj.d ? Buffer.from(obj.d, 'base64') : Buffer.alloc(0),
-    exitCode: obj.c,
-    timedOut: obj.to,
-    durationMs: obj.ms,
   };
+  if (obj.c !== undefined) event.exitCode = obj.c;
+  if (obj.to !== undefined) event.timedOut = obj.to;
+  if (obj.ms !== undefined) event.durationMs = obj.ms;
+  return event;
 }
