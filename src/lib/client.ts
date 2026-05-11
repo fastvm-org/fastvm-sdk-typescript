@@ -515,12 +515,16 @@ async function* parseNdjsonStream<T>(
 
 function parseExecEvent(raw: string): ExecEvent {
   const obj = JSON.parse(raw) as { t: string; d?: string; c?: number; to?: boolean; ms?: number };
+  const isExit = obj.t === 'x';
   const event: ExecEvent = {
     type: obj.t as 'o' | 'e' | 'x',
     data: obj.d ? Buffer.from(obj.d, 'base64') : Buffer.alloc(0),
   };
-  if (obj.c !== undefined) event.exitCode = obj.c;
-  if (obj.to !== undefined) event.timedOut = obj.to;
+  // Server omits "c" when exit code is 0 and "to" when not timed out.
+  if (isExit) {
+    event.exitCode = obj.c ?? 0;
+    event.timedOut = obj.to ?? false;
+  }
   if (obj.ms !== undefined) event.durationMs = obj.ms;
   return event;
 }
