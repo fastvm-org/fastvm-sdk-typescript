@@ -23,4 +23,4 @@ export {
 
 // Custom helpers (hand-written, not generated). See https://fastvm.org/docs/typescript.
 export { FastvmClient, FileTransferError, VMLaunchError, VMNotReadyError } from './lib';
-export type { LaunchOptions, WaitForReadyOptions, TransferOptions } from './lib';
+export type { LaunchOptions, WaitForReadyOptions, TransferOptions, ExecEvent, StreamOptions } from './lib';

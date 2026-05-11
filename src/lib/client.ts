@@ -13,7 +13,7 @@
  * comes straight from the generated `Fastvm` base class — no wrapping.
  */
 import { Fastvm, type ClientOptions } from '../client';
-import { Vms, type Vm, type VmLaunchParams } from '../resources/vms/vms';
+import { Vms, type Vm, type VmLaunchParams, type VmRunParams } from '../resources/vms/vms';
 import type { FilePresignResponse } from '../resources/shared';
 import type { RequestOptions } from '../internal/request-options';
 import type { APIPromise } from '../core/api-promise';
@@ -36,6 +36,25 @@ const DEFAULT_FETCH_TIMEOUT_SEC = 600;
 const DEFAULT_EXEC_TIMEOUT_SEC = 600;
 
 const VM_STAGE_DIR = '/var/tmp';
+
+/** One event yielded by `vms.stream()`. */
+export interface ExecEvent {
+  /** `"o"` stdout chunk, `"e"` stderr chunk, `"x"` terminal exit event. */
+  type: 'o' | 'e' | 'x';
+  /** Decoded output bytes for `"o"`/`"e"` events; empty Buffer for `"x"`. */
+  data: Buffer;
+  /** Process exit code — present only on `type === "x"` events. */
+  exitCode?: number;
+  /** True if the server-side timeout fired — present only on `type === "x"` events. */
+  timedOut?: boolean;
+  /** Server-side wall-clock duration in ms — present only on `type === "x"` events. */
+  durationMs?: number;
+}
+
+export interface StreamOptions {
+  /** Client-side HTTP timeout in milliseconds. Default: no timeout (stream until server closes). */
+  timeoutMs?: number;
+}
 
 export interface LaunchOptions {
   /** If `false`, skip polling and return the initial (possibly-queued) VM. Default `true`. */
@@ -91,6 +110,57 @@ class VmsWithHelpers extends Vms {
     return raw._thenUnwrap((vm) =>
       vm.status === RUNNING ? vm : (pollUntilRunning(this, vm.id, pollOpts) as unknown as Vm),
     );
+  }
+
+  /**
+   * Stream exec output as `ExecEvent` objects via `Accept: application/x-ndjson`.
+   *
+   * The server emits zero or more `"o"` (stdout) / `"e"` (stderr) chunk events
+   * followed by exactly one terminal `"x"` (exit) event. There is no 4 MiB
+   * per-stream cap — the connection stays open until the command finishes or the
+   * server-side `timeoutSec` fires.
+   *
+   * @example
+   * ```ts
+   * for await (const event of client.vms.stream(vm.id, { command: ['make', '-j8'] })) {
+   *   if (event.type === 'o') process.stdout.write(event.data);
+   *   else if (event.type === 'e') process.stderr.write(event.data);
+   *   else if (event.type === 'x') console.log(`exit ${event.exitCode} in ${event.durationMs}ms`);
+   * }
+   * ```
+   */
+  async *stream(
+    id: string,
+    body: VmRunParams,
+    opts: StreamOptions = {},
+  ): AsyncIterable<ExecEvent> {
+    const baseURL = this._client.baseURL.replace(/\/$/, '');
+    const url = `${baseURL}/v1/vms/${id}/exec`;
+    const headers: Record<string, string> = {
+      'X-API-Key': this._client.apiKey,
+      Accept: 'application/x-ndjson',
+      'Content-Type': 'application/json',
+    };
+    const ac = new AbortController();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (opts.timeoutMs !== undefined) {
+      timer = setTimeout(() => ac.abort(), opts.timeoutMs);
+    }
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+        signal: ac.signal,
+      });
+      if (!res.ok || !res.body) {
+        const text = await res.text().catch(() => '');
+        throw new FileTransferError(`streaming exec failed (${res.status}): ${text.slice(0, 2000)}`);
+      }
+      yield* parseNdjsonStream<ExecEvent>(res.body, parseExecEvent);
+    } finally {
+      if (timer !== undefined) clearTimeout(timer);
+    }
   }
 }
 
@@ -418,4 +488,42 @@ async function httpGetToTarExtract(url: string, localDir: string, timeoutSec: nu
   } finally {
     clearTimeout(t);
   }
+}
+
+async function* parseNdjsonStream<T>(
+  body: ReadableStream<Uint8Array>,
+  parse: (raw: string) => T,
+): AsyncGenerator<T> {
+  const decoder = new TextDecoder();
+  const reader = body.getReader();
+  let buf = '';
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop()!;
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed) yield parse(trimmed);
+      }
+    }
+    // flush decoder and handle any remaining buffered line
+    buf += decoder.decode();
+    if (buf.trim()) yield parse(buf.trim());
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+function parseExecEvent(raw: string): ExecEvent {
+  const obj = JSON.parse(raw) as { t: string; d?: string; c?: number; to?: boolean; ms?: number };
+  return {
+    type: obj.t as 'o' | 'e' | 'x',
+    data: obj.d ? Buffer.from(obj.d, 'base64') : Buffer.alloc(0),
+    exitCode: obj.c,
+    timedOut: obj.to,
+    durationMs: obj.ms,
+  };
 }
