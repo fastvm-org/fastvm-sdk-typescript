@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0 (2026-05-11)
+
+Full Changelog: [v0.5.0...v0.6.0](https://github.com/fastvm-org/fastvm-sdk-typescript/compare/v0.5.0...v0.6.0)
+
+### Features
+
+* **lib:** add vms.stream() for NDJSON streaming exec ([#18](https://github.com/fastvm-org/fastvm-sdk-typescript/issues/18)) ([a5e36a7](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/a5e36a7fd97e28b6cef5b677b64c603cc21f5062))
+
 ## 0.5.0 (2026-05-09)
 
 Full Changelog: [v0.4.2...v0.5.0](https://github.com/fastvm-org/fastvm-sdk-typescript/compare/v0.4.2...v0.5.0)
