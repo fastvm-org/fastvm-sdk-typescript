@@ -32,6 +32,10 @@ export interface OrgQuotaValues {
   snapshotCount: number;
 
   vcpu: number;
+
+  volumeCount: number;
+
+  volumeGiB: number;
 }
 
 export declare namespace Quotas {

@@ -12,9 +12,19 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/shared.ts">BucketMount</a></code>
+- <code><a href="./src/resources/shared.ts">DNSMode</a></code>
+- <code><a href="./src/resources/shared.ts">DNSPolicy</a></code>
+- <code><a href="./src/resources/shared.ts">EgressPolicy</a></code>
+- <code><a href="./src/resources/shared.ts">EgressRule</a></code>
+- <code><a href="./src/resources/shared.ts">EgressRuleKind</a></code>
 - <code><a href="./src/resources/shared.ts">FilePresignResponse</a></code>
 - <code><a href="./src/resources/shared.ts">FirewallPolicy</a></code>
-- <code><a href="./src/resources/shared.ts">FirewallRule</a></code>
+- <code><a href="./src/resources/shared.ts">IngressPolicy</a></code>
+- <code><a href="./src/resources/shared.ts">IngressRule</a></code>
+- <code><a href="./src/resources/shared.ts">IngressRuleKind</a></code>
+- <code><a href="./src/resources/shared.ts">PolicyAction</a></code>
+- <code><a href="./src/resources/shared.ts">VolumeAttachmentItem</a></code>
 
 # Vms
 
@@ -65,6 +75,47 @@ Methods:
 - <code title="post /v1/vms/{id}/files/fetch">client.vms.files.<a href="./src/resources/vms/files.ts">fetch</a>(id, { ...params }) -> ExecResult</code>
 - <code title="post /v1/vms/{id}/files/presign">client.vms.files.<a href="./src/resources/vms/files.ts">presign</a>(id, { ...params }) -> FilePresignResponse</code>
 
+## Volumes
+
+Types:
+
+- <code><a href="./src/resources/vms/volumes.ts">VolumeDetachResponse</a></code>
+
+Methods:
+
+- <code title="post /v1/vms/{id}/volumes">client.vms.volumes.<a href="./src/resources/vms/volumes.ts">attach</a>(id, { ...params }) -> VolumeAttachmentItem</code>
+- <code title="delete /v1/vms/{id}/volumes/{volumeId}">client.vms.volumes.<a href="./src/resources/vms/volumes.ts">detach</a>(volumeID, { ...params }) -> VolumeDetachResponse</code>
+
+## BucketMounts
+
+Types:
+
+- <code><a href="./src/resources/vms/bucket-mounts.ts">BucketMountListResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/vms/{id}/bucket-mounts/{bucketMountId}">client.vms.bucketMounts.<a href="./src/resources/vms/bucket-mounts.ts">retrieve</a>(bucketMountID, { ...params }) -> BucketMount</code>
+- <code title="get /v1/vms/{id}/bucket-mounts">client.vms.bucketMounts.<a href="./src/resources/vms/bucket-mounts.ts">list</a>(id) -> BucketMountListResponse</code>
+- <code title="delete /v1/vms/{id}/bucket-mounts/{bucketMountId}">client.vms.bucketMounts.<a href="./src/resources/vms/bucket-mounts.ts">delete</a>(bucketMountID, { ...params }) -> void</code>
+- <code title="post /v1/vms/{id}/bucket-mounts">client.vms.bucketMounts.<a href="./src/resources/vms/bucket-mounts.ts">attach</a>(id, { ...params }) -> BucketMount</code>
+- <code title="patch /v1/vms/{id}/bucket-mounts/{bucketMountId}">client.vms.bucketMounts.<a href="./src/resources/vms/bucket-mounts.ts">rotate</a>(bucketMountID, { ...params }) -> BucketMount</code>
+
+# Me
+
+## SSHKeys
+
+Types:
+
+- <code><a href="./src/resources/me/ssh-keys.ts">SSHKey</a></code>
+- <code><a href="./src/resources/me/ssh-keys.ts">SSHKeyListResponse</a></code>
+- <code><a href="./src/resources/me/ssh-keys.ts">SSHKeyDeleteResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/me/ssh-keys">client.me.sshKeys.<a href="./src/resources/me/ssh-keys.ts">list</a>() -> SSHKeyListResponse</code>
+- <code title="delete /v1/me/ssh-keys/{fingerprint}">client.me.sshKeys.<a href="./src/resources/me/ssh-keys.ts">delete</a>(fingerprint) -> SSHKeyDeleteResponse</code>
+- <code title="post /v1/me/ssh-keys">client.me.sshKeys.<a href="./src/resources/me/ssh-keys.ts">add</a>({ ...params }) -> SSHKey</code>
+
 # Snapshots
 
 Types:
@@ -81,22 +132,26 @@ Methods:
 - <code title="get /v1/snapshots">client.snapshots.<a href="./src/resources/snapshots.ts">list</a>() -> SnapshotListResponse</code>
 - <code title="delete /v1/snapshots/{id}">client.snapshots.<a href="./src/resources/snapshots.ts">delete</a>(id) -> SnapshotDeleteResponse</code>
 
-# Builds
+# SnapshotImports
 
 Types:
 
-- <code><a href="./src/resources/builds.ts">BuildResponse</a></code>
+- <code><a href="./src/resources/snapshot-imports.ts">ContextPresignResponse</a></code>
+- <code><a href="./src/resources/snapshot-imports.ts">SnapshotImportEvent</a></code>
+- <code><a href="./src/resources/snapshot-imports.ts">SnapshotImportResponse</a></code>
+- <code><a href="./src/resources/snapshot-imports.ts">SnapshotImportSourceSpec</a></code>
+- <code><a href="./src/resources/snapshot-imports.ts">SnapshotImportSourceView</a></code>
+- <code><a href="./src/resources/snapshot-imports.ts">SnapshotImportListResponse</a></code>
+- <code><a href="./src/resources/snapshot-imports.ts">SnapshotImportDeleteResponse</a></code>
 
 Methods:
 
-- <code title="post /v1/builds">client.builds.<a href="./src/resources/builds.ts">create</a>({ ...params }) -> BuildResponse</code>
-- <code title="get /v1/builds/{id}">client.builds.<a href="./src/resources/builds.ts">retrieve</a>(id) -> BuildResponse</code>
-
-# BuildContexts
-
-Methods:
-
-- <code title="post /v1/build-contexts/presign">client.buildContexts.<a href="./src/resources/build-contexts.ts">presign</a>() -> FilePresignResponse</code>
+- <code title="post /v1/snapshot-imports">client.snapshotImports.<a href="./src/resources/snapshot-imports.ts">create</a>({ ...params }) -> SnapshotImportResponse</code>
+- <code title="get /v1/snapshot-imports/{id}">client.snapshotImports.<a href="./src/resources/snapshot-imports.ts">retrieve</a>(id) -> SnapshotImportResponse</code>
+- <code title="get /v1/snapshot-imports">client.snapshotImports.<a href="./src/resources/snapshot-imports.ts">list</a>() -> SnapshotImportListResponse</code>
+- <code title="delete /v1/snapshot-imports/{id}">client.snapshotImports.<a href="./src/resources/snapshot-imports.ts">delete</a>(id) -> SnapshotImportDeleteResponse</code>
+- <code title="post /v1/snapshot-imports/{id}/cancel">client.snapshotImports.<a href="./src/resources/snapshot-imports.ts">cancel</a>(id) -> SnapshotImportResponse</code>
+- <code title="post /v1/snapshot-imports/context-presign">client.snapshotImports.<a href="./src/resources/snapshot-imports.ts">presignContext</a>({ ...params }) -> ContextPresignResponse</code>
 
 # Quotas
 
@@ -108,3 +163,21 @@ Types:
 Methods:
 
 - <code title="get /v1/org/quotas">client.quotas.<a href="./src/resources/quotas.ts">retrieve</a>() -> OrgQuotaUsage</code>
+
+# Volumes
+
+Types:
+
+- <code><a href="./src/resources/volumes.ts">Volume</a></code>
+- <code><a href="./src/resources/volumes.ts">VolumeListResponse</a></code>
+- <code><a href="./src/resources/volumes.ts">VolumeDeleteResponse</a></code>
+- <code><a href="./src/resources/volumes.ts">VolumeListAttachmentsResponse</a></code>
+
+Methods:
+
+- <code title="post /v1/volumes">client.volumes.<a href="./src/resources/volumes.ts">create</a>({ ...params }) -> Volume</code>
+- <code title="get /v1/volumes/{id}">client.volumes.<a href="./src/resources/volumes.ts">retrieve</a>(id) -> Volume</code>
+- <code title="patch /v1/volumes/{id}">client.volumes.<a href="./src/resources/volumes.ts">update</a>(id, { ...params }) -> Volume</code>
+- <code title="get /v1/volumes">client.volumes.<a href="./src/resources/volumes.ts">list</a>() -> VolumeListResponse</code>
+- <code title="delete /v1/volumes/{id}">client.volumes.<a href="./src/resources/volumes.ts">delete</a>(id) -> VolumeDeleteResponse</code>
+- <code title="get /v1/volumes/{id}/attachments">client.volumes.<a href="./src/resources/volumes.ts">listAttachments</a>(id) -> VolumeListAttachmentsResponse</code>
