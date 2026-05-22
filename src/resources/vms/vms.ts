@@ -2,6 +2,15 @@
 
 import { APIResource } from '../../core/resource';
 import * as Shared from '../shared';
+import * as BucketMountsAPI from './bucket-mounts';
+import {
+  BucketMountAttachParams,
+  BucketMountDeleteParams,
+  BucketMountListResponse,
+  BucketMountRetrieveParams,
+  BucketMountRotateParams,
+  BucketMounts,
+} from './bucket-mounts';
 import * as FilesAPI from './files';
 import { FileFetchParams, FilePresignParams, Files } from './files';
 import * as ServicesAPI from './services';
@@ -13,6 +22,8 @@ import {
   ServiceUpdateParams,
   Services,
 } from './services';
+import * as VolumesAPI from './volumes';
+import { VolumeAttachParams, VolumeDetachParams, VolumeDetachResponse, Volumes } from './volumes';
 import { APIPromise } from '../../core/api-promise';
 import { RequestOptions } from '../../internal/request-options';
 import { path } from '../../internal/utils/path';
@@ -20,6 +31,8 @@ import { path } from '../../internal/utils/path';
 export class Vms extends APIResource {
   services: ServicesAPI.Services = new ServicesAPI.Services(this._client);
   files: FilesAPI.Files = new FilesAPI.Files(this._client);
+  volumes: VolumesAPI.Volumes = new VolumesAPI.Volumes(this._client);
+  bucketMounts: BucketMountsAPI.BucketMounts = new BucketMountsAPI.BucketMounts(this._client);
 
   /**
    * Get a VM
@@ -84,8 +97,18 @@ export class Vms extends APIResource {
   }
 
   /**
-   * Updates `mode` and/or `ingress` on the firewall policy. Passing `ingress: []`
-   * clears all rules; omitting `ingress` leaves rules unchanged.
+   * Updates one or more blocks of the firewall policy. Each top-level block
+   * (`ingress`, `egress`, `dns`) is optional; when present, the supplied object
+   * **replaces that block wholesale**. Per-rule diffing is not supported — to change
+   * a single rule, send the full block with the desired rule list. An empty body
+   * (`{}`) is a no-op.
+   *
+   * Examples:
+   *
+   * - `{"ingress": {"default": "deny", "rules": []}}` clears all ingress rules and
+   *   sets the default action.
+   * - `{"dns": {"mode": "allow", "domains": ["api.example.com"], "blockBypass": true}}`
+   *   updates only the DNS block.
    */
   patchFirewall(id: string, body: VmPatchFirewallParams, options?: RequestOptions): APIPromise<Vm> {
     return this._client.patch(path`/v1/vms/${id}/firewall`, { body, ...options });
@@ -219,15 +242,18 @@ export interface Vm {
    */
   status: string;
 
+  /**
+   * Currently-attached bucket-mounts on this VM.
+   */
+  bucketMounts?: Array<Shared.BucketMount>;
+
   deletedAt?: string | null;
 
   /**
-   * Read-only composed view: `firewall` (the user policy) unioned with per-service
-   * auto-rules from this VM's registered services. Each auto-rule has source CIDR
-   * `::/0` and a `description` of the form `auto: proxy service <name>`. The same
-   * policy is what the worker firewall actually enforces. Set `firewall` to mutate;
-   * this field is computed per-response from `firewall` and the current service
-   * registry, never persisted.
+   * Top-level firewall policy with three independent axes. All sub-blocks are
+   * optional — the server substitutes the safe default (ingress deny / egress allow
+   * / dns mode=deny + empty) for missing blocks. Sending `firewall: null` on VM
+   * create is also valid.
    */
   effectiveFirewall?: Shared.FirewallPolicy;
 
@@ -245,6 +271,12 @@ export interface Vm {
    */
   expiresAtMs?: number;
 
+  /**
+   * Top-level firewall policy with three independent axes. All sub-blocks are
+   * optional — the server substitutes the safe default (ingress deny / egress allow
+   * / dns mode=deny + empty) for missing blocks. Sending `firewall: null` on VM
+   * create is also valid.
+   */
   firewall?: Shared.FirewallPolicy;
 
   machineName?: string;
@@ -279,6 +311,11 @@ export interface Vm {
    * `expiresAtMs` on resume.
    */
   ttlRemainingMs?: number;
+
+  /**
+   * Currently-attached volumes on this VM.
+   */
+  volumes?: Array<Shared.VolumeAttachmentItem>;
 }
 
 export namespace Vm {
@@ -318,6 +355,8 @@ export interface VmDeleteResponse {
  * cold boots and on warning-free restores).
  */
 export interface VmLaunchResponse extends Vm {
+  attachmentWarnings?: VmLaunchResponse.AttachmentWarnings;
+
   /**
    * Reports best-effort failures during the snapshot-restore service-replay step.
    * Only present when restoring from a snapshot AND the post-create bulk service
@@ -334,6 +373,57 @@ export interface VmLaunchResponse extends Vm {
 }
 
 export namespace VmLaunchResponse {
+  export interface AttachmentWarnings {
+    failedBucketMountAttachments?: Array<AttachmentWarnings.FailedBucketMountAttachment>;
+
+    failedVolumeAttachments?: Array<AttachmentWarnings.FailedVolumeAttachment>;
+
+    skippedSnapshotBucketMounts?: Array<AttachmentWarnings.SkippedSnapshotBucketMount>;
+
+    skippedSnapshotVolumes?: Array<AttachmentWarnings.SkippedSnapshotVolume>;
+  }
+
+  export namespace AttachmentWarnings {
+    export interface FailedBucketMountAttachment {
+      bucketUri: string;
+
+      mountPath: string;
+
+      statusMessage: string;
+    }
+
+    export interface FailedVolumeAttachment {
+      mountPath: string;
+
+      statusMessage: string;
+
+      volumeId: string;
+    }
+
+    export interface SkippedSnapshotBucketMount {
+      bucketUri: string;
+
+      mountPath: string;
+
+      /**
+       * Known values: `credentials_invalid`, `bucket_unreachable`,
+       * `credentials_unavailable`.
+       */
+      reason: string;
+    }
+
+    export interface SkippedSnapshotVolume {
+      mountPath: string;
+
+      /**
+       * Known values: `deleted`, `deleting`, `cross_org`, `vol_ro_ceiling_after_patch`.
+       */
+      reason: string;
+
+      volumeId: string;
+    }
+  }
+
   /**
    * Reports best-effort failures during the snapshot-restore service-replay step.
    * Only present when restoring from a snapshot AND the post-create bulk service
@@ -429,6 +519,12 @@ export interface VmListParams {
 
 export interface VmLaunchParams {
   /**
+   * Cold-boot inline bucket-mounts. Same authoritative-replace semantics on snapshot
+   * restore.
+   */
+  bucketMounts?: Array<VmLaunchParams.BucketMount>;
+
+  /**
    * Override the default disk size (GiB).
    */
   diskGiB?: number;
@@ -441,6 +537,12 @@ export interface VmLaunchParams {
    */
   envVars?: { [key: string]: string };
 
+  /**
+   * Top-level firewall policy with three independent axes. All sub-blocks are
+   * optional — the server substitutes the safe default (ingress deny / egress allow
+   * / dns mode=deny + empty) for missing blocks. Sending `firewall: null` on VM
+   * create is also valid.
+   */
   firewall?: Shared.FirewallPolicy;
 
   /**
@@ -473,9 +575,69 @@ export interface VmLaunchParams {
    * PATCH-time updates reset to this value.
    */
   ttl?: VmLaunchParams.Ttl;
+
+  /**
+   * Cold-boot inline volume attachments (managed Volume IDs). On snapshot restore,
+   * this list authoritatively replaces the captured list. Omit to use the captured
+   * list.
+   */
+  volumes?: Array<VmLaunchParams.Volume>;
 }
 
 export namespace VmLaunchParams {
+  export interface BucketMount {
+    /**
+     * Customer's GCS or S3 bucket URI. `gs://<bucket>[/prefix]` or
+     * `s3://<bucket>[/prefix]`.
+     */
+    bucketUri: string;
+
+    /**
+     * Customer-provided credentials. Never returned in API responses. Discriminated
+     * union: the `type` property selects the per-provider shape so SDKs surface typed
+     * per-type values.
+     */
+    credentials: BucketMount.GcpServiceAccountCredentials | BucketMount.AwsCredentials;
+
+    mountPath: string;
+
+    readOnly?: boolean;
+  }
+
+  export namespace BucketMount {
+    export interface GcpServiceAccountCredentials {
+      type: 'gcp-service-account-json';
+
+      value: GcpServiceAccountCredentials.Value;
+    }
+
+    export namespace GcpServiceAccountCredentials {
+      export interface Value {
+        client_email: string;
+
+        private_key: string;
+
+        type: 'service_account';
+      }
+    }
+
+    export interface AwsCredentials {
+      type: 'aws-credentials';
+
+      value: AwsCredentials.Value;
+    }
+
+    export namespace AwsCredentials {
+      export interface Value {
+        /**
+         * AWS shared-credentials INI text. Must contain a `[default]` section with
+         * `aws_access_key_id` and `aws_secret_access_key`.
+         */
+        data: string;
+      }
+    }
+  }
+
   /**
    * Per-VM auto-action timer. The cycle ticks down while the VM is `running` and
    * freezes on pause. `seconds` is the original cycle duration; refresh and
@@ -494,17 +656,33 @@ export namespace VmLaunchParams {
      */
     seconds: number;
   }
+
+  export interface Volume {
+    /**
+     * Absolute path; must start with /mnt/ or /data/.
+     */
+    mountPath: string;
+
+    volumeId: string;
+
+    readOnly?: boolean;
+  }
 }
 
 export interface VmPatchFirewallParams {
-  ingress?: Array<Shared.FirewallRule>;
-
   /**
-   * Firewall mode. Known values: `open` (allow all inbound traffic), `restricted`
-   * (deny by default; only rules listed in `ingress` are allowed). Additional values
-   * may be introduced in future server versions.
+   * DNS-layer filtering, independent of egress L4 rules. The resolver applies the
+   * DNS gate BEFORE L4 enforcement; a domain blocked here returns NXDOMAIN
+   * regardless of what egress.rules says about its IPs. All fields are optional —
+   * the server defaults `mode` to `deny` when missing, `domains` to `[]`, and
+   * `blockBypass` to false (see `normalizeDNSPolicy` in
+   * `scheduler/internal/httpapi/firewall.go`).
    */
-  mode?: string;
+  dns?: Shared.DNSPolicy;
+
+  egress?: Shared.EgressPolicy;
+
+  ingress?: Shared.IngressPolicy;
 }
 
 export interface VmRunParams {
@@ -530,17 +708,24 @@ export interface VmRunParams {
 
 export interface VmSetFirewallParams {
   /**
-   * Firewall mode. Known values: `open` (allow all inbound traffic), `restricted`
-   * (deny by default; only rules listed in `ingress` are allowed). Additional values
-   * may be introduced in future server versions.
+   * DNS-layer filtering, independent of egress L4 rules. The resolver applies the
+   * DNS gate BEFORE L4 enforcement; a domain blocked here returns NXDOMAIN
+   * regardless of what egress.rules says about its IPs. All fields are optional —
+   * the server defaults `mode` to `deny` when missing, `domains` to `[]`, and
+   * `blockBypass` to false (see `normalizeDNSPolicy` in
+   * `scheduler/internal/httpapi/firewall.go`).
    */
-  mode: string;
+  dns?: Shared.DNSPolicy;
 
-  ingress?: Array<Shared.FirewallRule>;
+  egress?: Shared.EgressPolicy;
+
+  ingress?: Shared.IngressPolicy;
 }
 
 Vms.Services = Services;
 Vms.Files = Files;
+Vms.Volumes = Volumes;
+Vms.BucketMounts = BucketMounts;
 
 export declare namespace Vms {
   export {
@@ -571,5 +756,21 @@ export declare namespace Vms {
     Files as Files,
     type FileFetchParams as FileFetchParams,
     type FilePresignParams as FilePresignParams,
+  };
+
+  export {
+    Volumes as Volumes,
+    type VolumeDetachResponse as VolumeDetachResponse,
+    type VolumeAttachParams as VolumeAttachParams,
+    type VolumeDetachParams as VolumeDetachParams,
+  };
+
+  export {
+    BucketMounts as BucketMounts,
+    type BucketMountListResponse as BucketMountListResponse,
+    type BucketMountRetrieveParams as BucketMountRetrieveParams,
+    type BucketMountDeleteParams as BucketMountDeleteParams,
+    type BucketMountAttachParams as BucketMountAttachParams,
+    type BucketMountRotateParams as BucketMountRotateParams,
   };
 }
