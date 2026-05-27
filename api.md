@@ -181,3 +181,13 @@ Methods:
 - <code title="get /v1/volumes">client.volumes.<a href="./src/resources/volumes.ts">list</a>() -> VolumeListResponse</code>
 - <code title="delete /v1/volumes/{id}">client.volumes.<a href="./src/resources/volumes.ts">delete</a>(id) -> VolumeDeleteResponse</code>
 - <code title="get /v1/volumes/{id}/attachments">client.volumes.<a href="./src/resources/volumes.ts">listAttachments</a>(id) -> VolumeListAttachmentsResponse</code>
+
+# Pricing
+
+Types:
+
+- <code><a href="./src/resources/pricing.ts">PricingResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/pricing">client.pricing.<a href="./src/resources/pricing.ts">retrieve</a>() -> PricingResponse</code>

@@ -2,6 +2,7 @@
 
 export * from './shared';
 export { Me } from './me/me';
+export { Pricing, type PricingResponse } from './pricing';
 export { Quotas, type OrgQuotaUsage, type OrgQuotaValues } from './quotas';
 export {
   SnapshotImports,
