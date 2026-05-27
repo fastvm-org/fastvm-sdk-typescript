@@ -19,6 +19,7 @@ import * as API from './resources/index';
 import * as TopLevelAPI from './resources/top-level';
 import { HealthResponse } from './resources/top-level';
 import { APIPromise } from './core/api-promise';
+import { Pricing, PricingResponse } from './resources/pricing';
 import { OrgQuotaUsage, OrgQuotaValues, Quotas } from './resources/quotas';
 import {
   ContextPresignResponse,
@@ -803,6 +804,10 @@ export class Fastvm {
    * Managed shared-volume lifecycle (POSIX-coherent multi-attach via virtio-fs).
    */
   volumes: API.Volumes = new API.Volumes(this);
+  /**
+   * Public list price for billable resources (compute + volume storage). Unauthenticated.
+   */
+  pricing: API.Pricing = new API.Pricing(this);
 }
 
 Fastvm.Vms = Vms;
@@ -811,6 +816,7 @@ Fastvm.Snapshots = Snapshots;
 Fastvm.SnapshotImports = SnapshotImports;
 Fastvm.Quotas = Quotas;
 Fastvm.Volumes = Volumes;
+Fastvm.Pricing = Pricing;
 
 export declare namespace Fastvm {
   export type RequestOptions = Opts.RequestOptions;
@@ -868,6 +874,8 @@ export declare namespace Fastvm {
     type VolumeCreateParams as VolumeCreateParams,
     type VolumeUpdateParams as VolumeUpdateParams,
   };
+
+  export { Pricing as Pricing, type PricingResponse as PricingResponse };
 
   export type BucketMount = API.BucketMount;
   export type DNSMode = API.DNSMode;

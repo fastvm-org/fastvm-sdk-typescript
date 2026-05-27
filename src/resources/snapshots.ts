@@ -92,6 +92,13 @@ export interface Snapshot {
   firewall?: Shared.FirewallPolicy;
 
   /**
+   * Machine type the snapshot was captured on (e.g. `c1m2`). VMs launched from this
+   * snapshot inherit it. Omitted for older snapshots captured before this was
+   * recorded.
+   */
+  machineName?: string;
+
+  /**
    * Free-form string→string map. Server-enforced limits: up to 256 keys, key length
    * 1–256 bytes, value length ≤4096 bytes, total JSON encoding ≤65536 bytes.
    */
