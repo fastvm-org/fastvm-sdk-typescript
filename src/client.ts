@@ -19,9 +19,20 @@ import * as API from './resources/index';
 import * as TopLevelAPI from './resources/top-level';
 import { HealthResponse } from './resources/top-level';
 import { APIPromise } from './core/api-promise';
-import { BuildContexts } from './resources/build-contexts';
-import { BuildCreateParams, BuildResponse, Builds } from './resources/builds';
+import { Pricing, PricingResponse } from './resources/pricing';
 import { OrgQuotaUsage, OrgQuotaValues, Quotas } from './resources/quotas';
+import {
+  ContextPresignResponse,
+  SnapshotImportCreateParams,
+  SnapshotImportDeleteResponse,
+  SnapshotImportEvent,
+  SnapshotImportListResponse,
+  SnapshotImportPresignContextParams,
+  SnapshotImportResponse,
+  SnapshotImportSourceSpec,
+  SnapshotImportSourceView,
+  SnapshotImports,
+} from './resources/snapshot-imports';
 import {
   Snapshot,
   SnapshotCreateParams,
@@ -30,6 +41,16 @@ import {
   SnapshotUpdateParams,
   Snapshots,
 } from './resources/snapshots';
+import {
+  Volume,
+  VolumeCreateParams,
+  VolumeDeleteResponse,
+  VolumeListAttachmentsResponse,
+  VolumeListResponse,
+  VolumeUpdateParams,
+  Volumes,
+} from './resources/volumes';
+import { Me } from './resources/me/me';
 import {
   ConsoleToken,
   ExecResult,
@@ -766,29 +787,36 @@ export class Fastvm {
   static toFile = Uploads.toFile;
 
   vms: API.Vms = new API.Vms(this);
+  me: API.Me = new API.Me(this);
   /**
    * Snapshot lifecycle
    */
   snapshots: API.Snapshots = new API.Snapshots(this);
   /**
-   * Build snapshots from a Docker image ref or Dockerfile
+   * Build snapshots from a Docker / OCI image reference or a client-uploaded Dockerfile + build context
    */
-  builds: API.Builds = new API.Builds(this);
-  /**
-   * Build snapshots from a Docker image ref or Dockerfile
-   */
-  buildContexts: API.BuildContexts = new API.BuildContexts(this);
+  snapshotImports: API.SnapshotImports = new API.SnapshotImports(this);
   /**
    * Org quotas and usage
    */
   quotas: API.Quotas = new API.Quotas(this);
+  /**
+   * Managed shared-volume lifecycle (POSIX-coherent multi-attach via virtio-fs).
+   */
+  volumes: API.Volumes = new API.Volumes(this);
+  /**
+   * Public list price for billable resources (compute + volume storage). Unauthenticated.
+   */
+  pricing: API.Pricing = new API.Pricing(this);
 }
 
 Fastvm.Vms = Vms;
+Fastvm.Me = Me;
 Fastvm.Snapshots = Snapshots;
-Fastvm.Builds = Builds;
-Fastvm.BuildContexts = BuildContexts;
+Fastvm.SnapshotImports = SnapshotImports;
 Fastvm.Quotas = Quotas;
+Fastvm.Volumes = Volumes;
+Fastvm.Pricing = Pricing;
 
 export declare namespace Fastvm {
   export type RequestOptions = Opts.RequestOptions;
@@ -811,6 +839,8 @@ export declare namespace Fastvm {
     type VmSetFirewallParams as VmSetFirewallParams,
   };
 
+  export { Me as Me };
+
   export {
     Snapshots as Snapshots,
     type Snapshot as Snapshot,
@@ -821,16 +851,43 @@ export declare namespace Fastvm {
   };
 
   export {
-    Builds as Builds,
-    type BuildResponse as BuildResponse,
-    type BuildCreateParams as BuildCreateParams,
+    SnapshotImports as SnapshotImports,
+    type ContextPresignResponse as ContextPresignResponse,
+    type SnapshotImportEvent as SnapshotImportEvent,
+    type SnapshotImportResponse as SnapshotImportResponse,
+    type SnapshotImportSourceSpec as SnapshotImportSourceSpec,
+    type SnapshotImportSourceView as SnapshotImportSourceView,
+    type SnapshotImportListResponse as SnapshotImportListResponse,
+    type SnapshotImportDeleteResponse as SnapshotImportDeleteResponse,
+    type SnapshotImportCreateParams as SnapshotImportCreateParams,
+    type SnapshotImportPresignContextParams as SnapshotImportPresignContextParams,
   };
-
-  export { BuildContexts as BuildContexts };
 
   export { Quotas as Quotas, type OrgQuotaUsage as OrgQuotaUsage, type OrgQuotaValues as OrgQuotaValues };
 
+  export {
+    Volumes as Volumes,
+    type Volume as Volume,
+    type VolumeListResponse as VolumeListResponse,
+    type VolumeDeleteResponse as VolumeDeleteResponse,
+    type VolumeListAttachmentsResponse as VolumeListAttachmentsResponse,
+    type VolumeCreateParams as VolumeCreateParams,
+    type VolumeUpdateParams as VolumeUpdateParams,
+  };
+
+  export { Pricing as Pricing, type PricingResponse as PricingResponse };
+
+  export type BucketMount = API.BucketMount;
+  export type DNSMode = API.DNSMode;
+  export type DNSPolicy = API.DNSPolicy;
+  export type EgressPolicy = API.EgressPolicy;
+  export type EgressRule = API.EgressRule;
+  export type EgressRuleKind = API.EgressRuleKind;
   export type FilePresignResponse = API.FilePresignResponse;
   export type FirewallPolicy = API.FirewallPolicy;
-  export type FirewallRule = API.FirewallRule;
+  export type IngressPolicy = API.IngressPolicy;
+  export type IngressRule = API.IngressRule;
+  export type IngressRuleKind = API.IngressRuleKind;
+  export type PolicyAction = API.PolicyAction;
+  export type VolumeAttachmentItem = API.VolumeAttachmentItem;
 }

@@ -1,5 +1,13 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
+export {
+  BucketMounts,
+  type BucketMountListResponse,
+  type BucketMountRetrieveParams,
+  type BucketMountDeleteParams,
+  type BucketMountAttachParams,
+  type BucketMountRotateParams,
+} from './bucket-mounts';
 export { Files, type FileFetchParams, type FilePresignParams } from './files';
 export {
   Services,
@@ -24,3 +32,9 @@ export {
   type VmRunParams,
   type VmSetFirewallParams,
 } from './vms';
+export {
+  Volumes,
+  type VolumeDetachResponse,
+  type VolumeAttachParams,
+  type VolumeDetachParams,
+} from './volumes';

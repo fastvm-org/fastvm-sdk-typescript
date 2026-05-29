@@ -1,9 +1,21 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 export * from './shared';
-export { BuildContexts } from './build-contexts';
-export { Builds, type BuildResponse, type BuildCreateParams } from './builds';
+export { Me } from './me/me';
+export { Pricing, type PricingResponse } from './pricing';
 export { Quotas, type OrgQuotaUsage, type OrgQuotaValues } from './quotas';
+export {
+  SnapshotImports,
+  type ContextPresignResponse,
+  type SnapshotImportEvent,
+  type SnapshotImportResponse,
+  type SnapshotImportSourceSpec,
+  type SnapshotImportSourceView,
+  type SnapshotImportListResponse,
+  type SnapshotImportDeleteResponse,
+  type SnapshotImportCreateParams,
+  type SnapshotImportPresignContextParams,
+} from './snapshot-imports';
 export {
   Snapshots,
   type Snapshot,
@@ -27,4 +39,13 @@ export {
   type VmRunParams,
   type VmSetFirewallParams,
 } from './vms/vms';
+export {
+  Volumes,
+  type Volume,
+  type VolumeListResponse,
+  type VolumeDeleteResponse,
+  type VolumeListAttachmentsResponse,
+  type VolumeCreateParams,
+  type VolumeUpdateParams,
+} from './volumes';
 export { type HealthResponse } from './top-level';

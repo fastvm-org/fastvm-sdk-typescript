@@ -144,8 +144,8 @@ describe('resource vms', () => {
     });
   });
 
-  test('setFirewall: only required params', async () => {
-    const responsePromise = client.vms.setFirewall('id', { mode: 'mode' });
+  test('setFirewall', async () => {
+    const responsePromise = client.vms.setFirewall('id', {});
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -153,20 +153,5 @@ describe('resource vms', () => {
     const dataAndResponse = await responsePromise.withResponse();
     expect(dataAndResponse.data).toBe(response);
     expect(dataAndResponse.response).toBe(rawResponse);
-  });
-
-  test('setFirewall: required and optional params', async () => {
-    const response = await client.vms.setFirewall('id', {
-      mode: 'mode',
-      ingress: [
-        {
-          portStart: 0,
-          protocol: 'protocol',
-          description: 'description',
-          portEnd: 0,
-          sourceCidrs: ['string'],
-        },
-      ],
-    });
   });
 });

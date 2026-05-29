@@ -1,4 +1,4 @@
-configured_endpoints: 28
-openapi_spec_url: https://storage.googleapis.com/stainless-sdk-openapi-specs/fastvm/fastvm-2274fbc800630f6b3d753f9bc0fdd71cc042d816258055681fe007ded6218f29.yml
-openapi_spec_hash: aa92517f912ed89901bf2aeb2f0ad172
-config_hash: 76a2c20e56b008f0d6acce2812a6fc81
+configured_endpoints: 48
+openapi_spec_url: https://storage.googleapis.com/stainless-sdk-openapi-specs/fastvm/fastvm-fade47887027e013bcd8f25e57e79a9d058d79347eed0529bb2d4ac795bfabaa.yml
+openapi_spec_hash: 8d185e446eea76d5d30d1f983831932c
+config_hash: 883b92117e540d5c8f1ce9c8effd37d1

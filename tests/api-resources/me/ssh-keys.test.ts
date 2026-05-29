@@ -7,9 +7,9 @@ const client = new Fastvm({
   baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
 });
 
-describe('resource builds', () => {
-  test('create', async () => {
-    const responsePromise = client.builds.create({});
+describe('resource sshKeys', () => {
+  test('list', async () => {
+    const responsePromise = client.me.sshKeys.list();
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -19,8 +19,8 @@ describe('resource builds', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  test('retrieve', async () => {
-    const responsePromise = client.builds.retrieve('id');
+  test('delete', async () => {
+    const responsePromise = client.me.sshKeys.delete('fingerprint');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -28,5 +28,20 @@ describe('resource builds', () => {
     const dataAndResponse = await responsePromise.withResponse();
     expect(dataAndResponse.data).toBe(response);
     expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('add: only required params', async () => {
+    const responsePromise = client.me.sshKeys.add({ publicKey: 'publicKey' });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('add: required and optional params', async () => {
+    const response = await client.me.sshKeys.add({ publicKey: 'publicKey', name: 'name' });
   });
 });

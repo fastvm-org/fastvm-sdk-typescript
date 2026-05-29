@@ -37,7 +37,9 @@ export class Snapshots extends APIResource {
   }
 
   /**
-   * List snapshots
+   * Lists all snapshots for the authenticated org. Supports metadata-equality
+   * filtering; callers pass repeated query parameters of the form
+   * `metadata.<key>=<value>` (e.g. `metadata.env=prod&metadata.role=api`).
    */
   list(options?: RequestOptions): APIPromise<SnapshotListResponse> {
     return this._client.get('/v1/snapshots', options);
@@ -69,6 +71,11 @@ export interface Snapshot {
   vmId: string;
 
   /**
+   * BucketMount metadata captured at snapshot time (no credentials).
+   */
+  bucketMounts?: Array<Snapshot.BucketMount>;
+
+  /**
    * Environment variable string→string map injected into the VM at boot. Keys must
    * be 1–256 bytes and match shell-variable name (`[A-Za-z_][A-Za-z0-9_]*`); values
    * may not contain newline, carriage return, or null bytes. Total JSON encoding
@@ -76,7 +83,20 @@ export interface Snapshot {
    */
   envVars?: { [key: string]: string };
 
+  /**
+   * Top-level firewall policy with three independent axes. All sub-blocks are
+   * optional — the server substitutes the safe default (ingress deny / egress allow
+   * / dns mode=deny + empty) for missing blocks. Sending `firewall: null` on VM
+   * create is also valid.
+   */
   firewall?: Shared.FirewallPolicy;
+
+  /**
+   * Machine type the snapshot was captured on (e.g. `c1m2`). VMs launched from this
+   * snapshot inherit it. Omitted for older snapshots captured before this was
+   * recorded.
+   */
+  machineName?: string;
 
   /**
    * Free-form string→string map. Server-enforced limits: up to 256 keys, key length
@@ -88,9 +108,22 @@ export interface Snapshot {
    * Captured service registrations from the source VM at snapshot time.
    */
   services?: Array<Snapshot.Service>;
+
+  /**
+   * Volume attachments captured at snapshot time.
+   */
+  volumes?: Array<Snapshot.Volume>;
 }
 
 export namespace Snapshot {
+  export interface BucketMount {
+    bucketUri: string;
+
+    mountPath: string;
+
+    readOnly?: boolean;
+  }
+
   /**
    * Captured (name, port, h2c) tuple for a single service registration on a
    * snapshotted VM. Carried across snapshot/ restore by `POST /v1/vms`
@@ -103,6 +136,14 @@ export namespace Snapshot {
     port: number;
 
     h2c?: boolean;
+  }
+
+  export interface Volume {
+    mountPath: string;
+
+    volumeId: string;
+
+    readOnly?: boolean;
   }
 }
 
