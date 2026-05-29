@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.7.0 (2026-05-29)
+
+Full Changelog: [v0.6.0...v0.7.0](https://github.com/fastvm-org/fastvm-sdk-typescript/compare/v0.6.0...v0.7.0)
+
+### Features
+
+* **api:** api update ([3e1711e](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/3e1711ed327aa3cd488c00f17c1d1d583b856dcf))
+* **api:** api update ([8a56c91](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/8a56c91768f6f7ba0c2b434771f6b361961ca055))
+
+
+### Bug Fixes
+
+* **typescript:** upgrade tsc-multi so that it works with Node 26 ([0a9b291](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/0a9b291aa097a2f4c2df87aa636f431977276760))
+
+
+### Chores
+
+* **tests:** remove redundant File import ([de56417](https://github.com/fastvm-org/fastvm-sdk-typescript/commit/de56417c27395f82c140c8fff4d3bda4b320aac3))
+
 ## 0.6.0 (2026-05-11)
 
 Full Changelog: [v0.5.0...v0.6.0](https://github.com/fastvm-org/fastvm-sdk-typescript/compare/v0.5.0...v0.6.0)
